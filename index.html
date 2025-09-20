@@ -787,7 +787,7 @@
         <!-- Each section is a "screen" in the game. JS will manage which one is active. -->
 <div id="welcome-screen" class="screen">
   <img src="intro.jpg" alt="The Masquerade Mystery of Pittencrieff Park" class="title-image">
-  <img src="synopsis.jpg" alt="Glen Pavilion at night with lanterns and masks" class="screen-image">
+  
 
   <p>The fragile peace between the animal kingdoms of Pittencrieff Park has been shattered! General Scramble-nut’s winter acorn stash is missing, and he blames the peacocks. Lord Featherton’s prized nesting materials have been sabotaged, and he blames the squirrels.</p>
   <p>A wise old owl has summoned the world’s finest detective trio—Hazel, Moo, and you—to act as neutral arbiters.</p>
@@ -1296,48 +1296,43 @@ function saveGameState() {
                 },
                 suspects: [
                     
-                        { type: 'story', text: "Holbourne Hike", image: "the-holbourne-hike.jpg" },
-                        { type: 'story', text: "Impossible Jump", image: "the-impossible-jump.jpg" },
-                        { type: 'story', text: "The Mental Wellbeing Way", image: "the-mental-wellbeing-way.jpg" },
-                        { type: 'story', text: "The Royal Progress Path", image: "the-royal-progress-path.jpg" },
+                        { type: 'story', text: "Lord Lorimer", image: "Lord Lorimer.jpg" },
+                        { type: 'story', text: "Beatrice Bea Bumble", image: "beatrice_bea_bumble.jpg" },
+                        { type: 'story', text: "Buzzard Aldrin", image: "buzzard_aldrin" },
+                        { type: 'story', text: "Captain Pine", image: "captain_pine.jpg" },
                         
-                        { type: 'story', text: "Dumyat Hill and Trail", image: "dumyat-hill-and-trail.jpg" },
-                        { type: 'story', text: "Echoing Alley", image: "the-echoing-alley.jpg" },
-                        { type: 'story', text: "Elven Path", image: "the-elven-path.jpg" },
-                        { type: 'story', text: "Dangerous Ivy Tunnel", image: "the-dangerous-ivy-tunnel.jpg" },
-                        { type: 'story', text: "Tillicoultry Trek", image: "the-tillicoultry-trek.jpg" },
-                        { type: 'story', text: "Remember The Past Path", image: "remembering-the-past-path.jpg" },
-                        { type: 'story', text: "Polish Path", image: "the-polish-path.jpg" },
-                        { type: 'story', text: "Nova Scotia Way", image: "nova.jpg" },
-                        { type: 'story', text: "Sybil's Path", image: "sybils-path.jpg" },
-                        { type: 'story', text: "Archers Path", image: "archer.jpg" },
-                        { type: 'story', text: "Davaar Diversion", image: "davaar.jpg" },
-                        { type: 'story', text: "Twisted Ancient Oak", image: "the-ancient-oak-trail.jpg" },
+                        { type: 'story', text: "Count Beaumont Badger", image: "count_beaumont_badger.jpg" },
+                        { type: 'story', text: "Ferdinand the Stone Cow", image: "ferdinand_the_stone_cow.jpg" },
+                        { type: 'story', text: "Katy Canary", image: "katy_canary.jpg" },
+                        { type: 'story', text: "King Louie", image: "king_louie.jpg" },
+                        { type: 'story', text: "Leo the Lion", image: "leo_the_lion.jpg" },
+                        { type: 'story', text: "Lily Pad Lizzie", image: "lily_pad_lizzie.jpg" },
+                        { type: 'story', text: "Loch Ness Monster", image: "loch_ness_monster.jpg" },
+                        { type: 'story', text: "Mervin the Supersonic Pigeon", image: "mervin_the_supersonic_pigeon.jpg" },
+                        { type: 'story', text: "Petunia Pit-a-Pat", image: "petunia_pit_a_pat.jpg" },
+                        { type: 'story', text: "Pip Quick Wing", image: "pip_quick_wing.jpg" },
+                        { type: 'story', text: "Private Sly", image: "private_sly.jpg" },
+                        { type: 'story', text: "Reginald the Swan", image: "reginald_the_Swan.jpg" },
+                        { type: 'story', text: "Sila the Owl", image: "sila_the_owl.jpg" },
                         
-                        { type: 'story', text: "Blairlogie Brae", image: "blairlogie-brae.jpg" },
-                        // Final true trail
-                        { type: 'story', text: "The Whispering Path", image: "the-whispering-path.jpg" },
+                        { type: 'story', text: "Wally the Wallaby", image: "wally_the_wallaby.jpg" },
+                        
                                             
                 ],
                 objects: [
-                    { type: 'story', text: "Elmbank's Missing Sack", image: "elmbanks-missing-sack.jpg" },
-                    { type: 'story', text: "The Giant Flat Tyre", image: "a-giant-flat-tyre.jpg" },
-                    { type: 'story', text: "Giant's Leaky Piggy-Bank", image: "giants-leaky-piggy-bank.jpg" },
-                    { type: 'story', text: "Caterpillar's Blue Suitcase", image: "the-caterpillars-blue-suitcase.jpg" },
-                    { type: 'story', text: "Madame Moobelle's Red Ammo-box", image: "madame-moobelles-red-ammo-box.jpg" },
-                    { type: 'story', text: "Cyclist's Saddle-bag", image: "the-cyclists-saddle-bag.jpg" },
-                    { type: 'story', text: "Prickly Thistle Pot", image: "the-prickly-thistle-pot.jpg" },
-                    { type: 'story', text: "Farmers Old Cart", image: "the-farmers-old-cart.jpg" },
-                    { type: 'story', text: "Rusty Old Lockbox", image: "the-rusty-old-lockbox.jpg" },
-                    { type: 'story', text: "Ticking Clock-box", image: "the-ticking-clock-box.jpg" },
-                    { type: 'story', text: "Washing Basket", image: "the-washing-basket.jpg" },
-                    { type: 'story', text: "Fox's Lunchbox", image: "the-foxs-lunchbox.jpg" },
-                    { type: 'story', text: "Sticky Maple Syrup Tin", image: "the-sticky-maple-syrup-tin.jpg" },
-                    { type: 'story', text: "Baroness's Bonnet-box", image: "the-baronesss-bonnet-box.jpg" },
-                    { type: 'story', text: "Welcome Mat", image: "the-welcome-mat.jpg" },
-                    { type: 'story', text: "Box of Bumpy Terrain", image: "the-box-of-bumpy-terrain.jpg" },
-                    // Final true object
-                    { type: 'story', text: "Weathered Backpack", image: "weathered-backpack.jpg" },
+                    { type: 'story', text: "Acorn Loft", image: "acorn_loft.jpg" },
+                    { type: 'story', text: "Ball Pit Play Area", image: "ball_pit_play_area.jpg" },
+                    { type: 'story', text: "Dragons Dungeon", image: "dragons_dungeon.jpg" },
+                    { type: 'story', text: "Eleven Elms", image: "eleven_elms.jpg" },
+                    { type: 'story', text: "Five Arch Bridge", image: "five_arch_bridge.jpg" },
+                    { type: 'story', text: "Glasshouse", image: "glasshouse.jpg" },
+                    { type: 'story', text: "Mercat Cross", image: "mercat_cross.jpg" },
+                    { type: 'story', text: "Nut Tree Junction", image: "nut_tree_junction.jpg" },
+                    { type: 'story', text: "Orangery Outpost", image: "orangery_outpost.jpg" },
+                    { type: 'story', text: "Peacocks Gymnasium", image: "peacocks_gymnasium.jpg" },
+                    { type: 'story', text: "Twinkle Toes Dance Hall", image: "twinkle_toes_dance_hall.jpg" },
+                    { type: 'story', text: "Whispering Waterfall", image: "whispering_waterfall.jpg" },
+                   ,
                 ],
                 clues: [
                     {
