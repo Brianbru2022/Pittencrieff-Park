@@ -91,18 +91,13 @@
         }
 
         .title-image {
-    width: 150px;           /* Sets a fixed width for the icon */
+    max-width: 95%;           /* Prevents the image from touching the card edges */
     height: auto;             /* Keeps the image's aspect ratio correct */
     display: block;           /* Helps with spacing and centering */
-    margin: 20px auto;        /* Centers the image and adds space around it */
+    margin: 0 auto 10px auto; /* Centers the image and adds space below it */
 }
 
-        .header-icon {
-    width: 150px;
-    height: auto;
-    display: block;
-    margin: 20px auto;
-}
+        
 
         .subtitle {
             font-size: clamp(1em, 4vw, 1.2em);
@@ -783,7 +778,7 @@
 
         <!-- NEW: Loading Screen -->
         <div id="loading-screen" class="screen active">
-            <img src="titles.jpg" alt="The Great Glen Feud" class="header-icon">
+            <img src="titles.jpg" alt="The Menstrie Giant" class="title-image">
             <p>Loading game assets...</p>
             <div id="loading-progress-bar-container" class="progress-bar-container" style="width: 80%;">
                 <div id="loading-progress-bar" class="progress-bar" style="width: 0%;">0%</div>
