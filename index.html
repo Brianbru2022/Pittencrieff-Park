@@ -1,0 +1,3107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.png" type="image/png">
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="theme-color" content="#36454F">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Great Glen Feud</title>
+    <style>
+        
+        :root{
+            --brand-color:#2f5233; /* Ochil hillside green */
+        }
+
+
+        /* General Body and Font Styling */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            /* ✅ New font stack */
+            font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+            background: #fdfaf0;
+            color: #36454F;
+            overflow: hidden;
+        }
+
+        /* Main Game Container */
+        #game-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        /* Screen Styling */
+        .screen {
+            display: none; /* Initially hide all screens with JS controlling visibility */
+            flex-direction: column;
+            justify-content: flex-start; /* Align content to the top */
+            align-items: center;
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 20px;
+            padding: 25px 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            text-align: center;
+            border: 1px solid #eee;
+            animation: fadeIn 0.5s ease-in-out;
+            max-height: 90vh; /* Ensure the box doesn't exceed screen height */
+            overflow-y: auto; /* Allow scrolling within the box if content is too long */
+            box-sizing: border-box; /* Ensures padding is included in the width/height */
+        }
+
+            .screen.active {
+                display: flex; /* Show the active screen */
+            }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Styling for screen images, placed under the title */
+        .screen-image {
+            width: 100%; /* Image will now fill the width of the content box */
+            height: auto;
+            border-radius: 15px;
+            margin-top: 15px; /* Space below title/subtitle */
+            margin-bottom: 20px; /* Space above main text */
+            background-color: #eee;
+            object-fit: cover;
+        }
+
+        .title-image {
+        max-width: 95%;           /* Prevents the image from touching the card edges */
+        height: auto;             /* Keeps the image's aspect ratio correct */
+        display: block;           /* Helps with spacing and centering */
+        margin: 0 auto 10px auto; /* Centers the image and adds space below it */
+        }
+
+        .subtitle {
+            font-size: clamp(1em, 4vw, 1.2em);
+            margin-bottom: 0; /* Adjusted margin */
+            color: #5E5E5E; /* Darker grey */
+            display: none;
+        }
+
+        .screen-subheader {
+            font-size: 1.5em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 3px solid;
+            padding-bottom: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .header-directions {
+            border-color: #008080;
+            color: #008080;
+        }
+        /* Teal */
+        .header-story {
+            border-color: #8B4513;
+            color: #8B4513;
+        }
+        /* Warm Brown */
+        .header-clue {
+            border-color: #A52A2A;
+            color: #A52A2A;
+        }
+        /* Deep Red */
+
+        .clue-progress-indicator {
+            font-size: clamp(0.8em, 2.5vw, 1em);
+            font-weight: bold;
+            color: #fff;
+            background-color: #36454F; /* Charcoal */
+            padding: 5px 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        p {
+            line-height: 1.6;
+            font-size: clamp(0.95em, 3.5vw, 1.1em);
+            margin-top: 0;
+            margin-bottom: 1em;
+        }
+
+        /* New Layout Containers for Story and Dialogue */
+        .story-paragraph-container {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            text-align: left;
+            margin-top: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+            .story-paragraph-container .icon {
+                flex-shrink: 0;
+                width: 24px;
+                height: 24px;
+                margin-top: 5px;
+            }
+
+                .story-paragraph-container .icon img {
+                    width: 100%;
+                    height: 100%;
+                }
+
+            .story-paragraph-container p {
+                margin: 0;
+                flex-grow: 1;
+            }
+
+        .dialogue-container {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: auto; /* This contains the floated element */
+        }
+        /* Character-specific dialogue backgrounds */
+        .dialogue-hazel {
+            background-color: #FFF8DC;
+        }
+        /* Soft Warm Gold (Cornsilk) */
+        .dialogue-moo {
+            background-color: #F0FFF0;
+        }
+        /* Cool Light Mint (Honeydew) */
+        .dialogue-other {
+            background-color: #F0F8FF;
+        }
+        /* Pale Grey-Blue (AliceBlue) */
+
+        .dialogue-container .character-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            float: left; /* Make the avatar float to the left */
+            margin-right: 15px; /* Add space between the avatar and the text */
+        }
+
+        .dialogue-container p {
+            margin: 0;
+            text-align: left;
+            font-style: italic;
+            /* This will now automatically wrap around the floated avatar */
+        }
+
+        /* Directional Arrows Styling */
+        .arrows-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .arrow-icon {
+            width: 90px;
+            height: 90%;
+        }
+
+        /* Input and Button Styling */
+        input#detectiveName {
+            font-size: 1.1em;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            text-align: center;
+            width: 80%;
+            max-width: 300px;
+            margin-bottom: 10px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+            input#detectiveName:focus {
+                outline: none;
+                border-color: #36454F;
+                box-shadow: 0 0 10px rgba(54, 69, 79, 0.2);
+            }
+
+        .big-btn {
+            display: inline-block;
+            margin-top: 20px;
+            font-size: clamp(1.1em, 4vw, 1.3em);
+            padding: 15px 20px;
+            border: none;
+            border-radius: 12px;
+            background: #36454F; /* Charcoal */
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s, opacity 0.2s;
+            box-shadow: 0 4px 15px rgba(54, 69, 79, 0.2);
+        }
+
+            .big-btn:hover {
+                transform: translateY(-3px);
+                background-color: #2F3E46;
+            }
+
+            .big-btn:disabled {
+                background-color: #b0bec5; /* Grey out disabled buttons */
+                cursor: not-allowed;
+                transform: none;
+                box-shadow: none;
+            }
+
+            .big-btn.secondary { /* New class for secondary buttons */
+                background-color: #78909c;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            }
+
+                .big-btn.secondary:hover {
+                    background-color: #546e7a;
+                }
+
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .grid-equal {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* This creates two equal-fraction columns */
+}
+
+        /* ---- Integrated Grid Selection Styling ---- */
+        #selection-container, #notebook-view, #cypher-view {
+            display: none; /* Hidden by default */
+            width: 100%;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+            background-color: #f9f9f9;
+            box-sizing: border-box;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px; /* Reduced gap slightly */
+            margin: 20px 0;
+        }
+
+        .grid-item {
+            text-align: center;
+            padding: 10px;
+            border-radius: 12px;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s, border-color 0.3s;
+            position: relative; /* Needed for the cross overlay */
+            background-color: #fff;
+        }
+
+            .grid-item:hover {
+                background-color: #f0f8ff;
+                transform: scale(1.05);
+            }
+
+            .grid-item img {
+                width: 80px;
+                height: 80px;
+                border-radius: 10px;
+                object-fit: cover;
+                background-color: #eee;
+                pointer-events: none; /* Make sure click goes to the parent div */
+            }
+
+            .grid-item.selected {
+                border-color: #36454F;
+                background-color: #e0f2f1;
+                transform: scale(1.05);
+            }
+
+            .grid-item.eliminated {
+                opacity: 0.5;
+                cursor: not-allowed;
+                background-color: #f5f5f5;
+            }
+
+                .grid-item.eliminated:hover {
+                    transform: none; /* Disable hover effect for eliminated items */
+                }
+
+                .grid-item.eliminated::after {
+                    content: '❌';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 3rem;
+                    color: red;
+                    opacity: 0.8;
+                    pointer-events: none; /* Make sure the cross doesn't intercept clicks */
+                }
+
+        #selection-feedback {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #36454F;
+            min-height: 20px;
+        }
+
+        /* ---- Integrated Feedback Styling ---- */
+        #feedback-container {
+            display: none; /* Hidden by default */
+            width: 100%;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid;
+            box-sizing: border-box;
+        }
+
+            #feedback-container.correct {
+                background-color: #e8f5e9; /* Light green */
+                border-color: #4caf50; /* Green */
+            }
+
+            #feedback-container.incorrect {
+                background-color: #ffebee; /* Light red */
+                border-color: #f44336; /* Red */
+            }
+
+        #feedback-title {
+            font-size: 1.8em;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        /* Popup Styling (Recap) */
+        @keyframes pop-up-content {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: none; /* Controlled by JS */
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+            z-index: 1000;
+            animation: fadeIn 0.2s;
+        }
+
+        .popup-content {
+            background: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: pop-up-content 0.3s ease-out;
+        }
+
+        #recap-modal .popup-content {
+            max-width: 500px;
+        }
+
+        #cypher-view img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        /* Progress Screen Styling */
+        .progress-graphic-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .progress-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.5s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            stroke: #008080; /* Teal */
+        }
+
+        .progress-ring__circle-bg {
+            stroke: #e0e0e0;
+        }
+
+        .progress-percentage-text {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #36454F;
+        }
+
+        .progress-label-text {
+            font-size: 0.8em;
+            color: #5E5E5E;
+            margin-top: -5px;
+        }
+
+        @keyframes sparkle-animation {
+            0% {
+                text-shadow: 0 0 5px, 0 0 10px, 0 0 15px;
+            }
+
+            50% {
+                text-shadow: 0 0 10px, 0 0 20px, 0 0 30px;
+            }
+
+            100% {
+                text-shadow: 0 0 5px, 0 0 10px, 0 0 15px;
+            }
+        }
+
+        .sparkle-gold {
+            color: #FFD700;
+            animation: sparkle-animation 1.5s infinite;
+        }
+
+        .sparkle-silver {
+            color: #C0C0C0;
+            animation: sparkle-animation 2s infinite;
+        }
+
+        .sparkle-bronze {
+            color: #CD7F32;
+            animation: sparkle-animation 2.5s infinite;
+        }
+
+
+        #milestones-container {
+            position: relative;
+            width: 80%;
+            margin: 15px 0 10px 0;
+            padding-top: 1.5rem;
+        }
+
+        @keyframes pop-in {
+            0% {
+                transform: translateX(-50%) scale(0);
+            }
+
+            70% {
+                transform: translateX(-50%) scale(1.2);
+            }
+
+            100% {
+                transform: translateX(-50%) scale(1);
+            }
+        }
+
+        .milestone {
+            position: absolute;
+            bottom: 100%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            display: none; /* Hidden by default */
+        }
+
+            .milestone.active {
+                display: block;
+                animation: pop-in 0.5s ease-out;
+            }
+
+        #milestone-25 {
+            left: 25%;
+        }
+
+        #milestone-50 {
+            left: 50%;
+        }
+
+        #milestone-75 {
+            left: 75%;
+        }
+
+        #milestone-100 {
+            left: 100%;
+        }
+
+        #progress-bar-container {
+            width: 100%;
+            height: 30px;
+            background-color: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            background: repeating-linear-gradient(45deg, #36454F, #2F3E46 10px, #36454F 10px, #2F3E46 20px);
+            background-size: 200% 200%;
+            animation: progress-animation 2s linear infinite;
+            transition: width 0.5s ease-in-out;
+        }
+
+        @keyframes progress-animation {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        #progress-summary {
+            margin-top: 20px;
+            font-size: clamp(0.9em, 3vw, 1em);
+            color: #5d4037;
+            background-color: #fafafa;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #timer-display {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-top: 15px;
+            background-color: #e8f5e9;
+            padding: 5px 15px;
+            border-radius: 10px;
+        }
+
+        /* ---- Grand Reveal Screen Styling ---- */
+        #grand-reveal-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .culprit-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            border-radius: 12px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+            .culprit-display img {
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                border: 4px solid #fff;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            }
+
+            .culprit-display h3 {
+                margin: 5px 0 0 0;
+                font-size: 1.4em;
+            }
+
+        /* ---- Score Breakdown Styling ---- */
+        #score-breakdown {
+            width: 100%;
+            max-width: 300px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 12px;
+        }
+
+            #score-breakdown p {
+                display: flex;
+                justify-content: space-between;
+                margin: 5px 0;
+                font-size: 1em;
+            }
+
+                #score-breakdown p span:last-child {
+                    font-weight: bold;
+                }
+
+        #final-score-line {
+            border-top: 2px solid #36454F;
+            margin-top: 10px;
+            padding-top: 10px;
+            font-size: 1.2em !important;
+        }
+
+        /* ---- Certificate Styling ---- */
+        #certificate-content {
+            border: 10px solid #36454F;
+            padding: 20px;
+            background-color: #fdfaf0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+            #certificate-content h1 {
+                font-family: 'serif';
+                color: #8B4513;
+            }
+
+        #certificate-player-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            border-bottom: 2px solid #36454F;
+            padding-bottom: 5px;
+            margin: 20px 0;
+        }
+
+        #certificate-rank {
+            font-style: italic;
+        }
+
+        .certificate-signature-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .certificate-signature img {
+            height: 60px;
+            width: auto;
+        }
+
+        /* ---- Print Styling ---- */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #certificate-screen, #certificate-screen * {
+                visibility: visible;
+            }
+
+            #certificate-screen {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                max-width: 100%;
+                max-height: 100%;
+                border-radius: 0;
+                box-shadow: none;
+                border: none;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+
+        <!-- NEW: Loading Screen -->
+        <div id="loading-screen" class="screen active">
+            <img src="titles.jpg" alt="The Menstrie Giant" class="title-image">
+            <p>Loading game assets...</p>
+            <div id="loading-progress-bar-container" class="progress-bar-container" style="width: 80%;">
+                <div id="loading-progress-bar" class="progress-bar" style="width: 0%;">0%</div>
+            </div>
+        </div>
+
+        <!-- Each section is a "screen" in the game. JS will manage which one is active. -->
+        <!-- Each section is a "screen" in the game. JS will manage which one is active. -->
+<div id="welcome-screen" class="screen">
+  <img src="titles_pittencrieff.jpg" alt="The Masquerade Mystery of Pittencrieff Park" class="title-image">
+  <img src="splash_pavilion.jpg" alt="Glen Pavilion at night with lanterns and masks" class="screen-image">
+
+  <p>The fragile peace between the animal kingdoms of Pittencrieff Park has been shattered! General Scramble-nut’s winter acorn stash is missing, and he blames the peacocks. Lord Featherton’s prized nesting materials have been sabotaged, and he blames the squirrels.</p>
+  <p>A wise old owl has summoned the world’s finest detective trio—Hazel, Moo, and you—to act as neutral arbiters.</p>
+  <p>You must untangle a web of accusations and counter-accusations to find the real troublemaker before this feud spills over into an all-out war of fluff and feather!</p>
+  <input id="detectiveName" placeholder="Detective Name" aria-label="Detective Name">
+  <button id="start-button" class="big-btn">Enter the Masquerade</button>
+</div>
+
+
+<div id="welcome-button-group" class="button-group" style="display: none;">
+    <button id="continue-button" class="big-btn">Continue Game</button>
+    <button id="new-game-button" class="big-btn secondary">New Game</button>
+</div>
+        </div>
+
+        <div id="story-screen" class="screen">
+            <img src="titles.jpg" alt="The Menstrie Giant" class="title-image">
+            <img src="welcome.jpg" alt="Welcome to the investigation" class="screen-image">
+            <div id="story-screen-content"></div>
+            <button id="story-continue-button" class="big-btn">Continue</button>
+        </div>
+
+        <div id="intro-story-screen" class="screen">
+            <img src="titles.jpg" alt="The Menstrie Giant" class="title-image">
+            <img src="intro.jpg" alt="Introduction image" class="screen-image">
+            <div id="intro-story-content"></div>
+            <button id="intro-story-next-button" class="big-btn">Let's find some clues</button>
+        </div>
+
+        <div id="clue-popup-screen" class="screen">
+            <div class="title" id="clue-popup-title">🔎 Clue 1 - The Adventure Begins</div>
+            <p>Get ready to solve the next clue!</p>
+        </div>
+
+        <div id="directions-screen" class="screen">
+            <img src="titles.jpg" alt="The Menstrie Giant" class="title-image">
+            <div class="subtitle" id="directions-subtitle"></div>
+            <div class="clue-progress-indicator" id="directions-progress"></div>
+            <h3 class="screen-subheader header-directions">Directions</h3>
+            <div id="directions-arrows-container" class="arrows-container"></div>
+            <div id="directions-content"></div>
+            <button id="directions-next-button" class="big-btn">Next</button>
+        </div>
+
+        <div id="clue-story-screen" class="screen">
+            <img src="titles.jpg" alt="The Menstrie Giant" class="title-image">
+            <div class="subtitle" id="clue-story-subtitle"></div>
+            <div class="clue-progress-indicator" id="clue-story-progress"></div>
+            <img src="story.jpg" alt="Story illustration" class="screen-image">
+            <div id="clue-story-content"></div>
+            <button id="clue-story-solve-button" class="big-btn">Examine the Clue</button>
+        </div>
+
+        <div id="task-screen" class="screen">
+            <img src="titles.jpg" alt="The Menstrie Giant" class="title-image">
+            <div class="subtitle" id="task-subtitle"></div>
+            <div class="clue-progress-indicator" id="task-progress"></div>
+            <img src="clues.jpg" alt="Clue illustration" class="screen-image">
+
+            <!-- Container for the main task view -->
+            <div id="task-main-view">
+                <div id="task-dialogue-container" class="dialogue-container">
+                    <!-- Dialogue will be dynamically inserted here by JS -->
+                </div>
+                <div class="button-group grid-equal">
+    <button id="show-suspects-button" class="big-btn">View Suspects</button>
+    <button id="show-objects-button" class="big-btn">View Locations</button>
+
+</div>
+<div class="button-group grid-equal">
+    <button id="show-cypher-button" ...>View Cypher</button>
+    <button id="notebook-button" class="big-btn secondary">Notebook</button>
+    <button id="recap-button" class="big-btn secondary">Recap Clue</button>
+</div>
+            </div>
+
+            <!-- Container for the grid selection, now integrated into the task screen -->
+            <div id="selection-container">
+                <h2 id="grid-title" class="title">Choose</h2>
+                <div id="grid-content" class="grid"></div>
+                <div id="selection-feedback">Select one item as your answer.</div>
+                <div class="button-group">
+                    <button id="confirm-selection-button" class="big-btn">Confirm Selection</button>
+                    <button id="close-grid-button" class="big-btn secondary">Back to Clue</button>
+                </div>
+            </div>
+
+            <!-- NEW: Container for the notebook view -->
+            <div id="notebook-view">
+    <h2 class="title">Detective's Notebook</h2>
+    <h3 class="screen-subheader header-clue">Suspects</h3>
+    <div id="notebook-suspects-grid" class="grid"></div>
+    <h3 class="screen-subheader header-clue">Locations</h3>
+    <div id="notebook-objects-grid" class="grid"></div>
+    <button id="notebook-close-button" class="big-btn secondary">Back to Clue</button>
+</div>
+
+            <!-- NEW: Container for the cypher view -->
+            <div id="cypher-view">
+                <h2 class="title">Cypher</h2>
+                <img id="cypher-img" src="" alt="Cypher Image" class="screen-image">
+                <button id="cypher-close-button" class="big-btn secondary">Back to Clue</button>
+            </div>
+
+            <!-- Container for feedback, also integrated -->
+            <div id="feedback-container">
+                <h2 id="feedback-title" class="title">Result</h2>
+                <div id="feedback-narrative"></div>
+                <button id="feedback-continue-button" class="big-btn">See Progress</button>
+            </div>
+        </div>
+
+        <!-- Progress Screen -->
+        <div id="progress-screen" class="screen">
+            <img src="detective-chart.jpg" alt="Detective Chart" class="screen-image" style="width: 100%; max-width: 350px;">
+            <div style="display: flex; width: 100%; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
+                <div id="correctness-graphic" class="progress-graphic-container">
+                    <svg class="progress-ring" width="120" height="120">
+                        <circle class="progress-ring__circle-bg" stroke-width="8" fill="transparent" r="52" cx="60" cy="60" />
+                        <circle class="progress-ring__circle" id="correctness-circle" stroke-width="8" fill="transparent" r="52" cx="60" cy="60" />
+                    </svg>
+                    <span id="correctness-percentage" class="progress-percentage-text">0%</span>
+                    <span class="progress-label-text">Correct</span>
+                </div>
+                <p id="progress-message" style="margin: 0; text-align: left; flex: 1;">Here's how you're tracking so far.</p>
+            </div>
+            <div id="milestones-container">
+                <div class="milestone" id="milestone-25">🕵️</div>
+                <div class="milestone" id="milestone-50">🔍</div>
+                <div class="milestone" id="milestone-75">🔓</div>
+                <div class="milestone" id="milestone-100">🎉</div>
+                <div id="progress-bar-container">
+                    <div id="progress-bar">0%</div>
+                </div>
+            </div>
+            <div id="progress-summary"></div>
+            <div id="motivational-quote-container"></div>
+            <button id="progress-continue-button" class="big-btn">Next Clue</button>
+        </div>
+
+        <!-- Grand Reveal Screen -->
+        <div id="grand-reveal-screen" class="screen">
+            <div class="title">The Grand Reveal!</div>
+            <img src="reveal.jpg" alt="Grand Reveal" class="screen-image">
+            <div id="reveal-story-content" style="width:100%"></div>
+            <div id="grand-reveal-container">
+    <div class="culprit-display">
+        <h3>Suspect</h3>
+        <img id="culprit-img" src="" alt="Culprit">
+        <p id="culprit-name"></p>
+    </div>
+    <div class="culprit-display">
+        <h3>Location</h3>
+        <img id="used-object-img" src="" alt="Used Object">
+        <p id="used-object-name"></p>
+    </div>
+</div>
+            <button id="reveal-continue-button" class="big-btn">See Your Award</button>
+        </div>
+
+        <!-- Detective Award Screen -->
+        <div id="detective-award-screen" class="screen">
+            <div class="title">Detective Award</div>
+            <img id="award-badge-img" src="" alt="Detective Badge" class="screen-image" style="width: 100%; max-width: 100%;">
+            <h2 id="award-title-text" class="subtitle" style="margin-top: 10px; margin-bottom: 10px;"></h2>
+            <div id="score-breakdown">
+                <p><span>Correct Answers:</span> <span id="base-score">0</span></p>
+                <p><span>Error Penalty:</span> <span id="error-penalty">0</span></p>
+                <p id="final-score-line"><span>Final Score:</span> <span id="final-score">0</span></p>
+            </div>
+            <div id="award-dialogue-container" style="width: 100%;">
+                <!-- Dialogue will be inserted here -->
+            </div>
+            <div class="button-group">
+                <button id="view-certificate-button" class="big-btn">View Certificate</button>
+                <button id="play-again-button" class="big-btn">Play Again?</button>
+            </div>
+        </div>
+
+        <!-- NEW: Certificate Screen -->
+        <div id="certificate-screen" class="screen">
+            <div id="certificate-content">
+                <h1>Certificate of Achievement</h1>
+                <p>This certificate is proudly awarded to</p>
+                <h2 id="certificate-player-name"></h2>
+                <p>for successfully solving The Menstrie Giant treasue hunt and earning the prestigious rank of</p>
+                <h3 id="certificate-rank"></h3>
+                <div class="certificate-signature-container">
+                    <div class="certificate-signature"><img src="moo.png" alt="Moo"></div>
+                    <div class="certificate-signature"><img src="hazel.png" alt="Hazel"></div>
+                </div>
+            </div>
+            <div class="button-group no-print">
+                <button id="print-certificate-button" class="big-btn">Print / Save as PDF</button>
+                <button id="certificate-back-button" class="big-btn secondary">Back</button>
+            </div>
+            <p class="no-print" style="font-size: 0.8em; margin-top: 10px;">(Hint: In the print dialog, you can choose 'Save as PDF' from the destination list.)</p>
+        </div>
+    </div>
+
+    <!-- The popup for showing the recap -->
+    <div id="recap-modal" class="popup-overlay">
+        <div class="popup-content">
+            <h2 id="recap-title" class="title">Clue Recap</h2>
+            <div id="recap-content"></div>
+            <button id="recap-close-button" class="big-btn secondary">Close</button>
+        </div>
+    </div>
+
+    <div id="confirm-modal" class="popup-overlay">
+        <div class="popup-content">
+            <h2 class="title">Start a New Game?</h2>
+            <p>Your saved progress will be lost. Are you sure you want to continue?</p>
+            <div class="button-group">
+                <button id="confirm-new-game-button" class="big-btn">Yes, Start New Game</button>
+                <button id="cancel-new-game-button" class="big-btn secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template for Grid Items -->
+    <template id="grid-item-template">
+        <div class="grid-item">
+            <img src="" alt="">
+            <p></p>
+        </div>
+    </template>
+
+    <div id="preload-cache" style="display: none;"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM ELEMENTS ---
+            const elements = {
+                
+                screens: {
+                    loading: document.getElementById('loading-screen'),
+                    welcome: document.getElementById('welcome-screen'),
+                    story: document.getElementById('story-screen'),
+                    introStory: document.getElementById('intro-story-screen'),
+                    cluePopup: document.getElementById('clue-popup-screen'),
+                    directions: document.getElementById('directions-screen'),
+                    clueStory: document.getElementById('clue-story-screen'),
+                    task: document.getElementById('task-screen'),
+                    progress: document.getElementById('progress-screen'),
+                    grandReveal: document.getElementById('grand-reveal-screen'),
+                    detectiveAward: document.getElementById('detective-award-screen'),
+                    certificate: document.getElementById('certificate-screen'),
+                },
+                buttons: {
+                    start: document.getElementById('start-button'),
+                    continueGame: document.getElementById('continue-button'),
+                    newGame: document.getElementById('new-game-button'),
+                    storyContinue: document.getElementById('story-continue-button'),
+                    introStoryNext: document.getElementById('intro-story-next-button'),
+                    directionsNext: document.getElementById('directions-next-button'),
+                    clueStorySolve: document.getElementById('clue-story-solve-button'),
+                    showSuspects: document.getElementById('show-suspects-button'),
+                    showObjects: document.getElementById('show-objects-button'),
+                    confirmSelection: document.getElementById('confirm-selection-button'),
+                    closeGrid: document.getElementById('close-grid-button'),
+                    feedbackContinue: document.getElementById('feedback-continue-button'),
+                    progressContinue: document.getElementById('progress-continue-button'),
+                    recap: document.getElementById('recap-button'),
+                    recapClose: document.getElementById('recap-close-button'),
+                    revealContinue: document.getElementById('reveal-continue-button'),
+                    playAgain: document.getElementById('play-again-button'),
+                    showCypher: document.getElementById('show-cypher-button'),
+                    cypherClose: document.getElementById('cypher-close-button'),
+                    notebook: document.getElementById('notebook-button'),
+                    notebookClose: document.getElementById('notebook-close-button'),
+                    viewCertificate: document.getElementById('view-certificate-button'),
+                    printCertificate: document.getElementById('print-certificate-button'),
+                    certificateBack: document.getElementById('certificate-back-button'),
+                    // --- CORRECTED LINES START HERE ---
+                    confirmNewGame: document.getElementById('confirm-new-game-button'),
+                    cancelNewGame: document.getElementById('cancel-new-game-button'),
+                    // --- CORRECTED LINES END HERE ---
+                },
+                // --- ADD THIS NEW LINE FOR THE MODAL ---
+                confirmModal: document.getElementById('confirm-modal'),
+                inputs: {
+                    detectiveName: document.getElementById('detectiveName'),
+                },
+                // ... the rest of your elements object continues from here
+                inputs: {
+                    detectiveName: document.getElementById('detectiveName'),
+                },
+                loading: {
+                    progressBar: document.getElementById('loading-progress-bar'),
+                },
+                dynamicContent: {
+                    cluePopupTitle: document.getElementById('clue-popup-title'),
+                    taskSubtitle: document.getElementById('task-subtitle'),
+                    taskDialogueContainer: document.getElementById('task-dialogue-container'),
+                    progressBar: document.getElementById('progress-bar'),
+                    progressMessage: document.getElementById('progress-message'),
+                    progressSummary: document.getElementById('progress-summary'),
+                    motivationalQuoteContainer: document.getElementById('motivational-quote-container'),
+                    directionsSubtitle: document.getElementById('directions-subtitle'),
+                    directionsArrowsContainer: document.getElementById('directions-arrows-container'),
+                    directionsContent: document.getElementById('directions-content'),
+                    clueStorySubtitle: document.getElementById('clue-story-subtitle'),
+                    clueStoryContent: document.getElementById('clue-story-content'),
+                    storyScreenContent: document.getElementById('story-screen-content'),
+                    introStoryContent: document.getElementById('intro-story-content'),
+                    correctnessGraphic: document.getElementById('correctness-graphic'),
+                    correctnessCircle: document.getElementById('correctness-circle'),
+                    correctnessPercentage: document.getElementById('correctness-percentage'),
+                    timerDisplay: document.getElementById('timer-display'),
+                    progressIndicators: {
+                        directions: document.getElementById('directions-progress'),
+                        clueStory: document.getElementById('clue-story-progress'),
+                        task: document.getElementById('task-progress'),
+                    },
+                    milestones: {
+                        25: document.getElementById('milestone-25'),
+                        50: document.getElementById('milestone-50'),
+                        75: document.getElementById('milestone-75'),
+                        100: document.getElementById('milestone-100'),
+                    }
+                },
+                taskScreenViews: {
+                    main: document.getElementById('task-main-view'),
+                    selection: document.getElementById('selection-container'),
+                    feedback: document.getElementById('feedback-container'),
+                    notebook: document.getElementById('notebook-view'),
+                    cypher: document.getElementById('cypher-view'),
+                },
+                selectionGrid: {
+                    title: document.getElementById('grid-title'),
+                    content: document.getElementById('grid-content'),
+                    feedback: document.getElementById('selection-feedback'),
+                },
+                feedbackView: {
+                    title: document.getElementById('feedback-title'),
+                    narrative: document.getElementById('feedback-narrative'),
+                },
+
+                
+
+
+                recapModal: {
+                    container: document.getElementById('recap-modal'),
+                    title: document.getElementById('recap-title'),
+                    content: document.getElementById('recap-content'),
+                },
+                cypherView: {
+                    img: document.getElementById('cypher-img'),
+                },
+                notebookView: {
+                    suspectsGrid: document.getElementById('notebook-suspects-grid'),
+                    objectsGrid: document.getElementById('notebook-objects-grid'),
+                },
+                reveal: {
+                    culpritImg: document.getElementById('culprit-img'),
+                    culpritName: document.getElementById('culprit-name'),
+                    usedObjectImg: document.getElementById('used-object-img'),
+                    usedObjectName: document.getElementById('used-object-name'),
+                    storyContent: document.getElementById('reveal-story-content'),
+                },
+                award: {
+                    badgeImg: document.getElementById('award-badge-img'),
+                    titleText: document.getElementById('award-title-text'),
+                    baseScore: document.getElementById('base-score'),
+                    errorPenalty: document.getElementById('error-penalty'),
+                    finalScore: document.getElementById('final-score'),
+                    dialogueContainer: document.getElementById('award-dialogue-container'),
+                },
+                certificate: {
+                    playerName: document.getElementById('certificate-player-name'),
+                    rank: document.getElementById('certificate-rank'),
+                },
+                templates: {
+                    gridItem: document.getElementById('grid-item-template'),
+                }
+            };
+
+            
+
+            // --- GAME STATE ---
+const gameState = {
+    detectiveName: '',
+    currentScreen: 'loading',
+    currentClueIndex: 0,
+    correctAnswers: 0,
+    incorrectGuesses: 0,
+    finalScore: 0,
+    finalRank: '',
+    playerSelection: null,
+    eliminatedSuspects: [],
+    eliminatedObjects: [],
+    progressBarInterval: null,
+    correctnessAnimationInterval: null
+};
+
+// --- SAVE GAME STATE ---
+function saveGameState() {
+  try {
+    const stateToSave = {
+      currentScreen: gameState.currentScreen,
+      currentClueIndex: gameState.currentClueIndex,
+      correctAnswers: gameState.correctAnswers,
+      incorrectGuesses: gameState.incorrectGuesses,
+      finalScore: gameState.finalScore,
+      finalRank: gameState.finalRank,
+      playerSelection: gameState.playerSelection,
+      eliminatedSuspects: gameState.eliminatedSuspects,
+      eliminatedObjects: gameState.eliminatedObjects,
+      detectiveName: gameState.detectiveName
+    };
+    localStorage.setItem('menstrieGiantProgress', JSON.stringify(stateToSave));
+  } catch (e) {
+    console.error("Failed to save game state", e);
+  }
+}
+
+
+// --- LOAD SAVED GAME STATE IF EXISTS ---
+    function init() {
+                navigateTo('loading');
+                preloadAssets(() => {
+                    const saved = localStorage.getItem('menstrieGiantProgress');
+                    let inProgress = false; // Assume not in progress by default
+
+                    if (saved) {
+                        try {
+                            const savedState = JSON.parse(saved);
+                            // A game is in progress if they've started but not finished
+                            if (savedState.currentClueIndex > 0 && savedState.currentClueIndex < gameData.clues.length) {
+                                inProgress = true;
+                            }
+                        } catch (e) {
+                            // Ignore corrupted save files
+                        }
+                    }
+
+                    if (inProgress) {
+                        // If a game is in progress, show the Continue/New Game buttons
+                        elements.buttons.start.style.display = 'none';
+                        document.getElementById('welcome-button-group').style.display = 'flex';
+                    } else {
+                        // Otherwise, show the normal Start button
+                        elements.buttons.start.style.display = 'inline-block';
+                        document.getElementById('welcome-button-group').style.display = 'none';
+                    }
+                    navigateTo('welcome');
+                });
+            }
+            
+            // --- GAME DATA ---
+            const gameData = {
+                characters: [
+                    { name: 'Moo', img: 'moo.png' },
+                    { name: 'Hazel', img: 'hazel.png' },
+                    
+                ],
+                storyScreens: {
+                    story: [
+                    { type: 'story', text: "Moo pops his head out from behind a bench, a leaf still stuck to his horn." },
+                    { type: 'dialogue', character: 'Moo', text: "Ah, <span id=\"player-name-placeholder\">Junior Detective</span>! You’re here! I’ve been practicing my 'squirrel-speak' to go undercover. Ahem... Squeak, squeaky, squeaken?" },
+                    { type: 'story', text: "Hazel trots over, rolling her eyes." },
+                    { type: 'dialogue', character: 'Hazel', text: "He’s been saying ‘My trousers are full of nuts’ for ten minutes. We’re going to need your brains on this one. Welcome to the team." }
+                    ],
+
+                    introStory: [
+                    { type: 'story', text: "You arrive at the grand entrance to Pittencrieff Park, but something is wrong. The air, usually filled with birdsong and laughter, is thick with tension." },
+                    { type: 'story', text: "A squirrel high in a chestnut tree glares down at you, chittering suspiciously." },
+                    { type: 'story', text: "Further down the path, a peacock fans its tail, not in a proud display, but like a warrior raising a shield. The park is on a knife’s edge." },
+                    { type: 'story', text: "Suddenly, a soft ‘Hoo-hoo!’ echoes from the direction of the ancient stone ruins of Malcolm Canmore's Tower. A large tawny owl swoops down, landing silently on a low wall." },
+                    { type: 'dialogue', character: 'Professor Hoot', text: "Greetings, <span id=\"player-name-placeholder\">Detective</span>s. I thank you for coming. The very soul of our park is at stake. Someone is pulling the strings, turning friend against friend. You must discover who it is." },
+                    { type: 'story', text: "He gestures with a wing towards a piece of bark with names and places neatly etched into it." },
+                    { type: 'dialogue', character: 'Professor Hoot', text: "Here are the key players and the disputed territories. Find the truth, and restore the peace." }
+                    ],
+
+
+                    revealStory: [
+                    
+                    { type: 'story', text: "You’ve done it. You’ve crossed the last innocent suspect off the list. Hazel looks at your completed notes, her tail still." },
+                    { type: 'dialogue', character: 'Hazel', text: "That's it. There’s only one suspect left… Beatrice Bumble. And only one location we haven’t cleared… The Glasshouses." },
+                    { type: 'story', text: "She looks up at you, her eyes gleaming with the thrill of the final chase." },
+                    { type: 'dialogue', character: 'Hazel', text: "That must be it. The Queen Bee. And the hidden stash. Let’s go." },
+
+                    { type: 'story', text: "You and the team race to the Glasshouses. Inside, the air is warm and thick with the scent of tropical flowers." },
+                    { type: 'story', text: "High in the metal rafters, you see it: a huge, humming nest. And there, guarding a massive pile of acorns, is the mastermind herself, Beatrice ‘Bea’ Bumble, flanked by two of her biggest bee soldiers." },
+
+                    { type: 'story', text: "Bea faces you, calm and commanding." },
+                    { type: 'dialogue', character: 'Beatrice Bumble', text: "So. The great <span id=\"player-name-placeholder\">Detective</span> has solved my little puzzle." },
+                    { type: 'dialogue', character: 'Moo', text: "But why, Bea? Why start a war?" },
+                    { type: 'dialogue', character: 'Beatrice Bumble', text: "War? This wasn’t war. It was… re-structuring. The squirrels are wasteful, burying acorns and forgetting them. The peacocks are frivolous. I brought order. Efficiency." },
+                    { type: 'story', text: "She gestures to the towering acorn stash." },
+                    { type: 'dialogue', character: 'Beatrice Bumble', text: "I stole them to create a centrally controlled food supply, for the good of the park. My park." },
+
+                    { type: 'story', text: "Just then, Professor Hoot swoops in, followed by a flustered General Scramble-nut." },
+                    { type: 'dialogue', character: 'General Scramble-nut', text: "Your reign of terror is over, Bea!" },
+
+                    { type: 'story', text: "The giant stash of acorns is returned to the squirrels. The feud is officially over." },
+                    { type: 'story', text: "Bea is placed under ‘hive arrest’ for the winter and her hive is tasked with extra pollination duties for a year to make up for the chaos." },
+                    { type: 'story', text: "Professor Hoot announces that, thanks to your investigation bringing everyone together, the first Great Glen Park Council will be formed to ensure peace for all time." },
+                    { type: 'dialogue', character: 'Professor Hoot', text: "You did it, <span id=\"player-name-placeholder\">Detective</span>. You looked past the chaos and found the truth. You have brought peace to our park." },
+
+                    { type: 'dialogue', character: 'Moo', text: "You’re the bee’s knees, <span id=\"player-name-placeholder\">Detective</span>!" },
+                    { type: 'story', text: "For the first time all day, a real, genuine smile spreads across Hazel’s face. She gives you a knowing wink." },
+                    { type: 'story', text: "The Great Glen Feud was over." }
+                    ],
+
+
+                },
+                suspects: [
+                    
+                        { type: 'story', text: "Holbourne Hike", image: "the-holbourne-hike.jpg" },
+                        { type: 'story', text: "Impossible Jump", image: "the-impossible-jump.jpg" },
+                        { type: 'story', text: "The Mental Wellbeing Way", image: "the-mental-wellbeing-way.jpg" },
+                        { type: 'story', text: "The Royal Progress Path", image: "the-royal-progress-path.jpg" },
+                        
+                        { type: 'story', text: "Dumyat Hill and Trail", image: "dumyat-hill-and-trail.jpg" },
+                        { type: 'story', text: "Echoing Alley", image: "the-echoing-alley.jpg" },
+                        { type: 'story', text: "Elven Path", image: "the-elven-path.jpg" },
+                        { type: 'story', text: "Dangerous Ivy Tunnel", image: "the-dangerous-ivy-tunnel.jpg" },
+                        { type: 'story', text: "Tillicoultry Trek", image: "the-tillicoultry-trek.jpg" },
+                        { type: 'story', text: "Remember The Past Path", image: "remembering-the-past-path.jpg" },
+                        { type: 'story', text: "Polish Path", image: "the-polish-path.jpg" },
+                        { type: 'story', text: "Nova Scotia Way", image: "nova.jpg" },
+                        { type: 'story', text: "Sybil's Path", image: "sybils-path.jpg" },
+                        { type: 'story', text: "Archers Path", image: "archer.jpg" },
+                        { type: 'story', text: "Davaar Diversion", image: "davaar.jpg" },
+                        { type: 'story', text: "Twisted Ancient Oak", image: "the-ancient-oak-trail.jpg" },
+                        
+                        { type: 'story', text: "Blairlogie Brae", image: "blairlogie-brae.jpg" },
+                        // Final true trail
+                        { type: 'story', text: "The Whispering Path", image: "the-whispering-path.jpg" },
+                                            
+                ],
+                objects: [
+                    { type: 'story', text: "Elmbank's Missing Sack", image: "elmbanks-missing-sack.jpg" },
+                    { type: 'story', text: "The Giant Flat Tyre", image: "a-giant-flat-tyre.jpg" },
+                    { type: 'story', text: "Giant's Leaky Piggy-Bank", image: "giants-leaky-piggy-bank.jpg" },
+                    { type: 'story', text: "Caterpillar's Blue Suitcase", image: "the-caterpillars-blue-suitcase.jpg" },
+                    { type: 'story', text: "Madame Moobelle's Red Ammo-box", image: "madame-moobelles-red-ammo-box.jpg" },
+                    { type: 'story', text: "Cyclist's Saddle-bag", image: "the-cyclists-saddle-bag.jpg" },
+                    { type: 'story', text: "Prickly Thistle Pot", image: "the-prickly-thistle-pot.jpg" },
+                    { type: 'story', text: "Farmers Old Cart", image: "the-farmers-old-cart.jpg" },
+                    { type: 'story', text: "Rusty Old Lockbox", image: "the-rusty-old-lockbox.jpg" },
+                    { type: 'story', text: "Ticking Clock-box", image: "the-ticking-clock-box.jpg" },
+                    { type: 'story', text: "Washing Basket", image: "the-washing-basket.jpg" },
+                    { type: 'story', text: "Fox's Lunchbox", image: "the-foxs-lunchbox.jpg" },
+                    { type: 'story', text: "Sticky Maple Syrup Tin", image: "the-sticky-maple-syrup-tin.jpg" },
+                    { type: 'story', text: "Baroness's Bonnet-box", image: "the-baronesss-bonnet-box.jpg" },
+                    { type: 'story', text: "Welcome Mat", image: "the-welcome-mat.jpg" },
+                    { type: 'story', text: "Box of Bumpy Terrain", image: "the-box-of-bumpy-terrain.jpg" },
+                    // Final true object
+                    { type: 'story', text: "Weathered Backpack", image: "weathered-backpack.jpg" },
+                ],
+                clues: [
+                    {
+                    title: "The Information Board Mystery",
+                    subtitle: "Clue #1",
+                    cypherImage: '',
+                    directions: [
+                        { type: "story", text: "Moo gestures grandly with his magnifying glass from the centre of the car park." },
+                        { type: "dialogue", character: "Moo", text: "The trail begins, my dear detectives! Our first piece of evidence awaits." },
+                        { type: "dialogue", character: "Hazel", text: "It's over here, Moo." },
+                        { type: "story", text: "Hazel is already standing by the huge, blue information board that tells the grand story of Dunfermline." },
+                        { type: "dialogue", character: "Hazel", text: "Try to keep up." },
+                        { type: "story", text: "Join Hazel and Moo at this historic sign." }
+                    ],
+                    directionsImages: ['info-board.jpg'],
+                    clueStory: [
+                        { type: "story", text: "Moo presses his nose against the map section of the board, his eyes wide." },
+                        { type: "dialogue", character: "Moo", text: "Aha! X marks the spot! This must be a treasure map leading to the legendary Great Golden Acorn!" },
+                        { type: "story", text: "Hazel lets out a long, slow sigh." },
+                        { type: "dialogue", character: "Hazel", text: "Moo, that’s the symbol for the tourist information centre. And the Great Golden Acorn isn't real." },
+                        { type: "dialogue", character: "Hazel", text: "While he’s busy hunting for mythical nuts, perhaps we can look for a real clue. A clever troublemaker might have hidden a coded message for an associate right here in plain sight." }
+                    ],
+                    task: {
+                        character: 'Hazel',
+                        text: "Look closely at the main block of text on the left of the sign. Find three words: First, what is the royal title given to the Saxon, Margaret? Next, what is the word used to describe what was done with the remains of many royals? Finally, of the two words describing Andrew Carnegie, find the one that refers to his generous, giving nature. Take the first letter of each, in order. They will spell the name of a key figure in this investigation."
+                    },
+                    type: 'suspect',
+                    answer: "PIP",
+                    correctAnswerReason: [
+                        { type: 'dialogue', character: 'Player', text: "Pip." },
+                        { type: 'dialogue', character: 'Moo', text: "Pip? Like a tiny apple seed? What kind of a name is that for a villain?" },
+                        { type: 'story', text: "Just then, a flash of red darts past your head and a small, twitchy robin lands on the corner of the sign." },
+                        { type: 'dialogue', character: 'Robin', text: "Heard my name!" },
+                        { type: 'story', text: "The robin immediately zips off again towards the Glen." },
+                        { type: 'dialogue', character: 'Hazel', text: "That was Pip Quick-wing. He’s the park’s eyes and ears. Far too busy reporting on the feud to have actually started it. He's a source, not a suspect. Excellent work, Detective. We can rule him out." },
+                        { type: 'story', text: "Suspect Identified & Eliminated: 1" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: 'dialogue', character: 'Player', text: "The culprit is... PIE!" },
+                        { type: 'dialogue', character: 'Moo', text: "Of course! It all makes sense! The culprit is a... Pilferer of Important Eateries! He must be after the park's cafe! To the scones!" },
+                        { type: 'dialogue', character: 'Hazel', text: "A valiant effort, Moo, but I think the letters might be in a different order. Our Junior Detective should take another look at the board. The clues must fit together perfectly." }
+                    ],
+                    motivationalQuote: { 
+                        character: 'Moo', 
+                        text: "Well, I'm glad we figured that out! To be honest, I was getting tired of his constant tweeting!" 
+                    },
+                    motivationalQuote2: { 
+                        character: 'Hazel', 
+                        text: "Moo, robins don't tweet, they chirp. And you're confusing social media with ornithology. Again." 
+                    }
+                    },
+
+
+
+
+                    {
+                    title: "The Stone Shield",
+                    subtitle: "Clue #2",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "Moo, still muttering about missing sacks, nearly walks past the next clue." },
+                        { type: "dialogue", character: "Moo", text: "Aha! More giant-writing! It seems my initial theory about secret messages was correct all along." },
+                        { type: "story", text: "Hazel gives you a patient look, as if to say, 'Just let him have this one.'" }
+                    ],
+                    directionsImages: ["wait.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Moo", text: "Look at this, team! It's a map to a dragon's hoard! See, there are two twisty dragons... and a helmet... and a... checkered bit?" },
+                        { type: "dialogue", character: "Hazel", text: "That's a Coat of Arms, Moo. It's like a fancy logo for a family. The giant was very confused by it. He told me he thought it was some kind of warning sign." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "The giant used this strange shield to name one of his False Trails. He believed that following a path named after these people would lead to a dead end. To find out which trail to cross off your list, you must discover the family's name that this Coat of Arms belonged to. What is the surname of the family associated with this stone shield?"
+                    },
+                    type: "suspect",
+                    answer: "Holbourne Hike",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "Holbourne — exactly. That makes the False Trail ‘The Holbourne Hike’. Their home was demolished; the giant said he’d never follow a path named after a fallen castle." },
+                        { type: "dialogue", character: "Moo", text: "A tragic tumble of stones — and an easy one to cross off!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘Windsor’ is the castle’s name, not the family. The board labels it ‘The Holbourne Coat of Arms’. Holbourne is the surname — eliminate ‘The Holbourne Hike’." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Onward! Our brains are hotter than a blacksmith’s anvil!" }
+                },
+                {
+                    title: "The Haggis-Spotter",
+                    subtitle: "Clue #3",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "A few steps away, Moo lets out a gasp of discovery." },
+                        { type: "dialogue", character: "Moo", text: "I've found it! The giant's lookout post!" },
+                        { type: "story", text: "He rushes over to a tall, red metal pole bolted to the ground." },
+                        { type: "dialogue", character: "Moo", text: "It's a special long-distance haggis-spotter! You use these handles to focus it. See? It's zooming in!" }
+                    ],
+                    directionsImages: ["wait.jpg"],
+                    clueStory: [
+                        { type: "story", text: "Hazel watches, amused, as Moo energetically pumps away, peering intently at the distant hills." },
+                        { type: "dialogue", character: "Hazel", text: "While Moo is busy with his... important work, I think I know what this is about. The giant saw humans using this strange 'red tree' and was completely bewildered. He couldn't understand why they would stop their journey to play with it. He decided to name one of his decoys after the problem this machine is designed to solve." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Look at the big blue drawing on the wall right next to the red pole. It tells you what this whole area is for. Figure out the unfortunate, puffy problem that someone using this machine would most likely have, and you will discover the name of the decoy to cross off your list. What mishap would this station help you fix?"
+                    },
+                    type: "object",
+                    answer: "The Giant Flat Tyre",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "A flat tyre! Of course! Which means the decoy must be 'The Giant's Flat Tyre'. Excellent deduction!" },
+                        { type: "dialogue", character: "Moo", text: "A tyre? What's a tyre?" },
+                        { type: "dialogue", character: "Hazel", text: "It's a rubber wheel for a bicycle. The giant didn't have a bike; he had two perfectly good feet. He thought the idea of getting a flat tyre was so silly, he'd never hide his real treasure in an object named after it! Cross it off the list." }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Moo", text: "A broken chain? Sounds like trouble to me." },
+                        { type: "dialogue", character: "Hazel", text: "It could be, but this red machine — with the long handle and hose — is mostly for a very specific problem. The clue was to look at the picture nearby. It’s a cycle repair station." },
+                        { type: "dialogue", character: "Hazel", text: "The most common issue it helps with is a flat tyre. The giant saw one of these once and was baffled. He didn’t trust anything that deflated, especially not something carrying treasure. That’s why ‘The Giant’s Flat Tyre’ was the decoy to cross off." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Detective genius! You spotted the puff before I did." }
+                },
+                {
+                    title: "The Iron Number Puzzle",
+                    subtitle: "Clue #4",
+                    cypherImage: "",
+                    directions: [
+                        { type: "dialogue", character: "Hazel", text: "Time for a walk!"},
+                        { type: "story", text: "You follow her instructions, leaving the car park behind and trotting across the wide playing fields. After passing through an opening beside the school, you turn left. The path curves gently to the right, and you find yourselves outside a place with a lawn so perfectly flat and green it looks like a snooker table." },
+                        
+                    ],
+                    directionsImages: ["straight.jpg", "left.jpg", "right.jpg", "stop.jpg"],
+                    clueStory: [
+                        { type: "story", text: "Moo points a hoof at the metalwork on the entrance frame"},
+                        { type: "dialogue", character: "Moo", text: "It's a recipe! A very old one!" },
+                        { type: "story", text: "Hazel tilts her head"},
+                        { type: "dialogue", character: "Hazel", text: "A recipe, Moo?" },
+                        { type: "dialogue", character: "Moo", text: "Yes! It says... 'Take one part thistle, nine parts mud...' It's a recipe for a Terrible Tummy Ache!" },
+                        { type: "story", text: "Hazel chuckles"},
+                        { type: "dialogue", character: "Hazel", text: "It's not a recipe, it's a two-part code the giant created. He was very proud of this one. It's our job to crack it." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "This code has two steps. Step 1: Look at the four digits of the year on the entranceway. Multiply the first two digits together. Then, multiply the last two digits together. You should now have two new numbers. Step 2: Convert those two numbers into letters (where A=1,B=2,C=3, etc.). Those two letters are the initials of the False Trail you need to cross off your list!"
+                    },
+                    type: "suspect",
+                    answer: "Impossible Jump",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "The year is 1925. 1×9=9 → I, 2×5=10 → J. Initials I.J. match ‘The Impossible Jump trail’. The giant avoided anything labelled impossible." },
+                        { type: "dialogue", character: "Moo", text: "Impossible? Pah! …But yes, let’s definitely not go that way." }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "If you got I…K, recheck the maths: 1×9=9 and 2×5=10. That’s I and J — which points to ‘The Impossible Jump trail’ to eliminate." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Numbers cracked! If only oatcakes were this easy." }
+                },
+
+
+                {
+                    title: "The Hidden Word",
+                    subtitle: "Clue #5",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "You follow Hazel further along the path as it winds past the houses. After a short walk, she stops beside a patch of grass where a small, reddish marker stands on two metal poles." },
+                        { type: "dialogue", character: "Hazel", text: "The giant left his next puzzle right here." }
+                    ],
+                    directionsImages: ["left.jpg","straight.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Moo", text: "This marker is having an identity crisis! It seems to have two different names on it. How confusing!" },
+                        { type: "story", text: "Hazel joins him, peering at the marker." },
+                        { type: "dialogue", character: "Hazel", text: "The giant was very specific with his puzzles. He told me this clue is only about the single word at the very top. He was fascinated by how it had a secret word hiding right at the end of it." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Your puzzle is to find the four-letter word hiding at the end of that top name. It's a place where humans keep their money. Identifying that little word will reveal the name of the decoy on your list!"
+                    },
+                    type: "object",
+                    answer: "Giant's Leaky Piggy-Bank",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "'Bank'! That's it! You've got a sharp eye for hidden things. The decoy must be 'The Leaky Piggy-Bank'! The giant never used money, he only ever traded with shiny pebbles and interesting feathers. A piggy-bank would be completely useless to him, especially a leaky one! It’s definitely a decoy. Cross it off." },
+                        { type: "dialogue", character: "Moo", text: "But... if it's a bank, isn't that where treasure goes?" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Moo", text: "Elm? A fine tree! So… ‘The Giant’s Favourite Twig’?" },
+                        { type: "dialogue", character: "Hazel", text: "Nice try, Moo — but the clue told us to find a four-letter word hiding at the end of the top name on the marker. The word is ‘BANK’. The decoy ‘The Leaky Piggy-Bank’ plays on that. But the giant never trusted money, let alone a container with a hole in it. Definitely a decoy." }
+                    ],
+                    motivationalQuote: { character: "Hazel", text: "Sharp eyes, Detective — the giant won’t fool us with hidden words." }
+                },
+                {
+                    title: "The Story Pole",
+                    subtitle: "Clue #6",
+                    cypherImage: "",
+                    directions:  [
+                        { type: "dialogue", character: "Moo", text: "Another decoy dealt with!"},
+                        { type: "story", text: "Moo gives the little red marker a triumphant tap."},
+                        { type: "dialogue", character: "Moo", text: "My brilliant mind is getting sharper by the minute. Which way now, Hazel?"},
+                        { type: "dialogue", character: "Hazel", text: "Simple! Put the little red marker directly behind you, and we will turn left." },
+                        { type: "story", text: "She leads the team down the quiet street until it ends at a flight of steps leading down towards a wooded path." },
+                        { type: "dialogue", character: "Hazel", text: "The giant liked this spot. He left us another message on that big wooden post." }
+                    ],
+                    directionsImages: ["left.jpg","straight.jpg","left.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Moo", text: "All this walking is hard work. I think I need a nap." },
+                        { type: "story",text: "Moo leans dramatically against the post."},
+                        { type: "dialogue", character: "Hazel", text: "Nonsense. Look here. The giant was a big believer in 'Fit Facts'. He knew that a good walk wasn't just about the treasure, it was about how it made you feel." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "The giant named one of his False Trails after a feeling, just to be tricky. He wants you to find the plaque that mentions the benefit of 'walking in the open countryside'. What is the two-word positive effect it has on you? That phrase is the name of the False Trail to cross off your list."
+                    },
+                    type: "suspect",
+                    answer: "The Mental Wellbeing Way",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "'The Mental Wellbeing Way'! That's it! While the giant cared about feeling good, his real trails were always named after physical places, like Dumyat’s Peak or The Big Crag. A trail named after a feeling is far too poetic for his real treasure map. Cross it off." },
+                        { type: "dialogue", character: "Moo", text: "Well, that sounds like a very nice path to take. Why is it false?" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Moo", text: "‘Body fat’? That’s certainly... memorable." },
+                        { type: "dialogue", character: "Hazel", text: "That line’s from another plaque. The one we needed talks about walking in the open countryside. It says it helps with ‘mental wellbeing’. That was the key. The trail named ‘The Mental Wellbeing Way’ sounds inspiring — but it didn’t fit the giant’s very practical naming style. Definitely a false trail." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Our brains are fitter than our legs — and that’s saying something!" }
+                },
+                {
+                    title: "The Silver Tree",
+                    subtitle: "Clue #7",
+                    cypherImage: "",
+                    directions: [
+                        { type: "dialogue", character: "Hazel", text: "Right turn!" },
+                        { type: "story", text: "With the steps behind you, the three of you head right, along a path surrounded by lush greenery." },
+                        { type: "dialogue", character: "Hazel", text: "The giant liked this bit of the path. He said there was a strange metal tree that grew here." },
+                        { type: "story", text: "Sure enough, a short way along, you spot it: a tall, thin, silver pole rising from the bushes." }
+                    ],
+                    directionsImages: ["right.jpg", "straight.jpg", "wait.jpg"],
+                    clueStory: [
+                        { type: "story", text: "Moo squints at the strange lettering on the silver pole."},
+                        { type: "dialogue", character: "Moo", text: "It's a secret message from another agent! It must be very important." },
+                        { type: "dialogue", character: "Hazel", text: "It is important, but not for a spy. The giant thought these were the initials for one of his silliest decoys—a special container he'd made. He created a puzzle so only a real detective could identify it." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Look carefully at the vertical letters carved into the pole. There are three of them, one above the other. Those three letters are the initials of a decoy on your list. Find the object on your list that matches those initials to discover our next false lead!"
+                    },
+                    type: "object",
+                    answer: "Caterpillar's Blue Suitcase",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "'The Caterpillar's Blue Suitcase'! The giant told me he once met the caterpillar, and it was far too busy munching on leaves to ever think about packing for a holiday. It didn't even own any clothes! The suitcase is definitely a decoy." },
+                        { type: "dialogue", character: "Moo", text: "A suitcase? For a caterpillar? Absurd!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Moo", text: "‘The Captain’s Rusty Bucket’? That starts with a C!" },
+                        { type: "dialogue", character: "Hazel", text: "A good try, but this code was all about initials. The pole has three letters carved vertically: C, B, and S. The only match is ‘The Caterpillar’s Blue Suitcase’. And since caterpillars don’t carry luggage — especially not blue ones — we know it was one of the giant’s sillier decoys." }
+                    ],
+                    motivationalQuote: { character: "Hazel", text: "Initials solved — the giant’s alphabet games can’t stop us." }
+                },
+                {
+                    title: "The King's Journey",
+                    subtitle: "Clue #8",
+                    cypherImage: "",
+                    directions: [
+                        { type: "dialogue", character: "Moo", text: "Onwards!" },
+                        { type: "story", text: "Moo charges ahead down the path. You and Hazel follow at a more sensible pace. Just before as the path meets a junction, you come to another wooden story post, almost identical to the last one." },
+                        { type: "dialogue", character: "Hazel", text: "Another message from the giant! Let's see what this one says." }
+                    ],
+                    directionsImages: ["straight.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "story", text: "Moo's eyes go wide as he scans the text on the upper plague"},
+                        { type: "dialogue", character: "Moo", text: "It says this path was a 'Kings Highway'! We're walking where KINGS walked! Do you think we'll get to meet one?" },
+                        { type: "story", text: "Hazel gives a smile"},
+                        { type: "dialogue", character: "Hazel", text: "I think we're a few centuries too late, Moo. But the giant was fascinated by the idea of kings and queens travelling along here. He named a False Trail after the special journeys they used to take." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "The giant's puzzle is a history question, on the upper plaque, it describes the path being used for a special type of journey by a monarch. Find the two-word phrase used for these official trips. That phrase is the name of the False Trail to eliminate."
+                    },
+                    type: "suspect",
+                    answer: "The Royal Progress Path",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘Royal Progress’ — that’s the phrase. The trail named ‘The Royal Progress Path’ must be eliminated. The giant hated loud, noisy routes full of people, trumpets and carts. He preferred quiet crags and hidden trails." },
+                        { type: "dialogue", character: "Moo", text: "Shame. I would’ve looked splendid in a crown." }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Moo", text: "King’s Highway? That’s very regal!" },
+                        { type: "dialogue", character: "Hazel", text: "That’s the name of the road, not the journey. The plaque says the kings took a ‘Royal Progress’. That’s the phrase we needed. The giant would’ve avoided anything so public." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "We may not meet a king, but we’re ruling this investigation!" }
+                },
+                {
+                    title: "Which Way is Further?",
+                    subtitle: "Clue #9",
+                    cypherImage: "",
+                    directions: [
+                        { type: "dialogue", character: "Moo", text: "Onwards!" },
+                        { type: "story", text: "You and Hazel follow at a more sensible pace. At the junction, you turn right and immediately come to a huge map of the whole area displayed on a stand." },
+                        { type: "dialogue", character: "Moo", text: "Whoa. I think we need an expert." },
+                        { type: "story", text: "He looks at you expectantly." },
+                    ],
+                    directionsImages: ["straight.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Moo", text: "I know where to go next!"},
+                        { type: "story", text: "Moo points at a small box on the map"}, 
+                        { type: "dialogue", character: "Moo", text: "Where to next?. It says Tullibody this way, or Blairlogie that way! Let's go to... Tullibody!"},
+                        { type: "dialogue", character: "Hazel", text: "Not so fast, The giant left a puzzle here to make sure we're paying attention. He named a False Trail after one of these two places." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "To find the False Trail, you need to solve the giant's puzzle. He wants to know which of the two places listed in the 'Where to next?' box is further away. The name of that place will identify the trail we need to cross off our list."
+                    },
+                    type: "suspect",
+                    answer: "Blairlogie Brae",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "Blairlogie is further at 1¾ miles. So we must eliminate ‘Blairlogie Brae’. The giant always chose the shorter route when he had the option — said it gave him more time for loafing and lunch." },
+                        { type: "dialogue", character: "Moo", text: "But I like a long walk!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Moo", text: "Tullibody! That sounds right!" },
+                        { type: "dialogue", character: "Hazel", text: "Let’s double-check. Tullibody is only 1¼ miles. Blairlogie is 1¾. The giant thought the longer path was always a waste of snacking time. The longer one, Blairlogie Brae, was a decoy." }
+                    ],
+                    motivationalQuote: { character: "Hazel", text: "Fractions solved — the giant can’t trip us up with numbers." }
+                },
+                {
+                    title: "The Four Letters",
+                    subtitle: "Clue #10",
+                    cypherImage: "",
+                    directions: [
+                        { type: "dialogue", character: "Hazel", text: "A right turn it is!" },
+                        { type: "story", text: "Hazel leads the way. The path runs alongside a wide, grassy lawn that looks perfect for a picnic."},
+                        { type: "dialogue", character: "Hazel", text: "The giant sometimes stopped for a snack here. He left his next clue at his favourite resting spot." },
+                        { type: "story", text: "A little further along, you see it — a sturdy-looking place to sit, with a fine view out over the countryside." }
+                    ],
+                    directionsImages: ["right.jpg","straight.jpg","wait.jpg"],
+                    clueStory: [
+                        { type: "story", text: "Moo plops down on the seat with a sigh of relief"},
+                        { type: "dialogue", character: "Moo", text: "What a view! I could sit here all day. Wait a minute... Hazel, there are some strange carvings here. More initials!" },
+                        { type: "dialogue", character: "Hazel", text: "You're right, Moo. The giant saw these too. He thought it was the perfect code to name one of his most secure decoy containers." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Look at the four capital letters carved into the back of this seat. Those four letters are the initials of a decoy on your list. Find the item that matches to eliminate it."
+                    },
+                    type: "object",
+                    answer: "Madame Moobelle's Red Ammo-box",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘Madame Moobelle's Red Ammo-box’ — exactly! Madame Moobelle was a pacifist who disliked loud noises and spent her days knitting jumpers for hedgehogs. She would never own an ammo-box. The giant made it up as a joke." },
+                        { type: "dialogue", character: "Moo", text: "Knitting hedgehog jumpers? That’s… oddly adorable." }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Moo", text: "‘The Muddy Mole’s Round Ashtray’? That’s got the right initials — kind of!" },
+                        { type: "dialogue", character: "Hazel", text: "Close, but the initials have to be exact and in order: M.M.R.A. The only match is ‘Madame Moobelle’s Red Ammo-box’. The giant thought it was so absurd, he made it a decoy for laughs." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Four letters solved! At this rate, even the benches are helping us." }
+                },
+
+
+                {
+                    title: "The Time and Place Puzzle",
+                    subtitle: "Clue #11",
+                    cypherImage: "",
+                    directions: [
+                        { type: "dialogue", character: "Hazel", text: "Right then, team! This way!" },
+                        { type: "story", text: "Hazel points her nose down the path from the resting spot. You continue along the path until it becomes a road. You take a left turn into a housing estate, then the first right turn, following the quiet street all the way to the end. Here you join a bigger road." },
+                        { type: "dialogue", character: "Moo", text: "This is Hazel Avenue! They named a road after you! You must be very important." },
+                        { type: "story", text: "Hazel ignores him"},
+                        { type: "dialogue", character: "Hazel", text: "Carefully across." },
+                        { type: "story", text: "You cross safely, turn left, and a little way along, Hazel stops you at a blue directional pointer." }
+                    ],
+                    directionsImages: ["straight.jpg","left.jpg","right.jpg","left.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "story", text: "Moo looks at a blue pointer"},
+                        { type: "dialogue", character: "Moo", text: "Oh good, another place to walk to. How long does it say it will take?" },
+                        { type: "dialogue", character: "Hazel", text: "That's the interesting part. The giant has combined the time and the destination into a single, two-part puzzle to name his next False Trail. It's his cleverest one yet." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Step 1: Find the number of minutes it says the walk will take. Step 2: Look at the three words of the destination. From each word, take the letter that is in the same position as the number. These three letters are the initials of the False Trail to eliminate."
+                    },
+                    type: "suspect",
+                    answer: "Twisted Ancient Oak",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘Twisted Ancient Oak!’ That fits! The giant said this tree gave him the creeps — it was gnarled, whispered in the wind, and he swore it was haunted. He refused to go near it. Definitely a decoy." },
+                        { type: "dialogue", character: "Moo", text: "But why would the giant cross off a mighty old oak? Sounds like the perfect hiding place." }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Moo", text: "The Awful Omelette? That’s T.A.O., isn’t it?" },
+                        { type: "dialogue", character: "Hazel", text: "Imaginative, Moo — but remember, the initials come from real places here. The sign leads us to ‘Twisted Ancient Oak’. That matches perfectly, and the giant avoided it like the plague. Definitely a decoy." }
+                    ],
+                    motivationalQuote: { character: "Hazel", text: "A clever puzzle cracked — the giant’s tricks won’t fool us!" }
+                },
+                {
+                    title: "The Two Travellers",
+                    subtitle: "Clue #12",
+                    cypherImage: "",
+                    directions: [
+                        { type: "dialogue", character: "Moo", text: "Right then! The arrow points right, so right we go!" },
+                        { type: "story", text: "For once, he's correct. Hazel leads the way, and the three of you follow the path as it traces the edge of a happily bubbling burn. The path soon offers a right turn, and Moo, feeling confident, almost takes it." },
+                        { type: "dialogue", character: "Hazel", text: "Not that one! The giant’s instructions say to take the second right turn!" },
+                        { type: "story", text: "You continue on, and after ignoring the first path, you take the next right. It leads you alongside a huge, flat grassy field." },
+                        { type: "dialogue", character: "Hazel", text: "Perfect for a game of fetch! Or for finding treasure! Look, on that tall silver pole!" }
+                    ],
+                    directionsImages: ["right.jpg","straight.jpg","right.jpg", "straight.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Moo", text: "More pictures! This must be a menu. I'll have the curly-wurly machine and two lollipops, please!" },
+                        { type: "dialogue", character: "Hazel", text: "It's not a menu, Moo. It shows the two types of people who use this path. The giant thought the pictures were clever and named one of his decoys after one of them." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Of the two pictures on the blue circle, one shows walkers and one shows a person using a machine with two wheels. The decoy is named after the person on the machine. Work out the name for that type of person."
+                    },
+                    type: "object",
+                    answer: "Cyclist's Saddle-bag",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘The Cyclist’s Saddle-bag’! That’s the one. The giant was far too big for bicycles, his knees up around his ears! He had no use for a saddle-bag. Definitely another decoy." },
+                        { type: "dialogue", character: "Moo", text: "But a saddle-bag is for carrying things. Why is it a decoy?" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "Not quite. The clue was to look at the two pictures: a walker and a cyclist. The puzzle said to pick the one on the machine. That’s the cyclist, leading to ‘The Cyclist’s Saddle-bag’ on the list. A tricky bit of picture-reading!" }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Wheels or feet — either way, we’re racing ahead!" }
+                },
+                {
+                    title: "The New Land",
+                    subtitle: "Clue #13",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "Moo takes the lead from the wooden marker."},
+                        { type: "dialogue", character: "Moo", text: "This way to adventure!" },
+                        { type: "story", text: "Moo charges ahead until the path meets the road" },
+                        { type: "dialogue", character: "Hazel", text: "Time for another road safety lesson from Detective Hazel!"},
+                        { type: "story", text: "You turn left, following the road as it curves right, then left again, bringing you to the foot of a magnificent and very old stone tower house. In front of it is a large information display, packed with stories"}
+                    ],
+                    directionsImages: ["straight.jpg","left.jpg","right.jpg","left.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "story", text: "Moo stares at the portrait of the man in the big, fluffy collar."},
+                        { type: "dialogue", character: "Moo", text: "He looks very important." },
+                        { type: "dialogue", character: "Hazel", text: "He was. This is Sir William Alexander. He persuaded the King to establish a whole new country for him across the ocean! The giant thought this was far too much effort, so he named a False Trail after it." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Look at the story of Sir William Alexander. What was the two-word name of the new colony he established, which is now part of Canada? That name will help you identify the next False Trail to cross off your list."
+                    },
+                    type: "suspect",
+                    answer: "Nova Scotia Way",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘Nova Scotia’ — exactly. The trail ‘The Nova Scotia Way’ must be crossed off. The giant was a homebody. He thought travelling across the ocean sounded exhausting and much too far from his bed." },
+                        { type: "dialogue", character: "Moo", text: "I’d have gone… if they served oatcakes on the ship." }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "Not quite. The board says Sir William persuaded the King to establish a new colony called Nova Scotia. That was the two-word name we needed for the False Trail." }
+                    ],
+                    motivationalQuote: { character: "Hazel", text: "History cracked — the giant won’t trick us with faraway places." }
+                },
+                {
+                    title: "The Prickly Plaque",
+                    subtitle: "Clue #14",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "You are still at the grand old stone building. Hazel's sharp eyes scan the walls near the large information display. "},
+                        { type: "dialogue", character: "Hazel", text: "The giant didn’t just leave one clue here. He was too fond of the place. Look closer at the stonework…" },
+                        { type: "story", text: "She points her nose towards a small, round, blue and grey plaque fixed to the wall." }
+                    ],
+                    directionsImages: ["wait.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Moo", text: "Ooh, another one! This one is very fancy. It’s got a tower, and a big cross, and… ouch! Two very spiky-looking plants!" },
+                        { type: "dialogue", character: "Hazel", text: "Indeed. The giant was very fond of that plant, even if it is a bit sharp. He thought it was so important that he named one of his decoy containers after it." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Look closely at the plaque. You'll see a big grey cross behind a tower. In the space on the left of the cross, and the space on the right, there is a picture of the same spiky plant. What is this plant called?"
+                    },
+                    type: "object",
+                    answer: "Prickly Thistle Pot",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘The Prickly Thistle-Pot’! A very sharp piece of detective work. The giant once tried to use it to store dewdrops but kept pricking his fingers. He decided it was the most useless container in Scotland." },
+                        { type: "dialogue", character: "Moo", text: "Ouch! No wonder it’s a decoy." }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "Not quite. The clue was to name the spiky plant shown left and right of the cross. That plant is the thistle — Scotland’s national flower. That would have led you to ‘The Prickly Thistle-Pot’." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Thistles or not, we’re cutting through these puzzles!" }
+                },
+                {
+                    title: "The Last Look Back",
+                    subtitle: "Clue #15",
+                    cypherImage: "",
+                    directions: [
+                        { type: "dialogue", character: "Moo", text: "Right, let’s leave the spooky stories behind." },
+                        { type: "story", text: "Moo looks relieved as he scurries away from the old tower house. With the grand building behind you, Hazel makes sure you all cross the road safely. You turn and continue walking towards the crossroads ahead." },
+                        { type: "dialogue", character: "Hazel", text: "Hold on a moment! The giant left one last puzzle here. Turn around and take one final look at the front of that magnificent building." }
+                    ],
+                    directionsImages: ["straight.jpg","u-turn.jpg"],
+                    clueStory: [
+                        { type: "story", text: "You all turn to face the building again. From this distance, you can see the whole thing clearly." },
+                        { type: "dialogue", character: "Hazel", text: "The giant loved the shapes builders use. He was especially impressed by the big, curved entrance in the very middle of the building. He thought it looked like something a person with a bow and arrow might like." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "What is the simple, four-letter architectural name for that curved entryway? Its name is the key to the next trail we must eliminate."
+                    },
+                    type: "suspect",
+                    answer: "Archers Path",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘The Archer’s Path’! Exactly. The giant feared stray arrows might hit his gem. He’d never hide it near an archer’s path — far too risky!" },
+                        { type: "dialogue", character: "Moo", text: "Aha! A path for an archer! But why is it a False Trail?" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "Not quite. The clue was to name the curved shape of the entrance. That shape is an Arch. The giant linked that to ‘The Archer’s Path’, which is the one to eliminate." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Arches and arrows — nothing gets past our detective team!" }
+                },
+
+
+
+                {
+                    title: "The Hidden Trade",
+                    subtitle: "Clue #16",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "You reach the T-junction at the end of the road."},
+                        { type: "dialogue", character: "Moo", text: "Which way now, oh wise and wonderful Hazel?"},
+                        { type: "story", text: "Hazel sniffs the air and looks both ways"},
+                        { type: "dialogue", character: "Hazel", text: "We need to cross the road here, and then turn right." },
+                        { type: "story", text: "She waits for a gap in the traffic and leads you safely across. You walk with the road on your right, and soon come to a large history display filled with old photographs." }
+                    ],
+                    directionsImages: ["straight.jpg","right.jpg","straight.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "story", text: "Moo peers at the first paragraph of text"},
+                        { type: "dialogue", character: "Moo", text: "It says here this area used to be a 'hive of activity'! Full of people making and selling things." },
+                        { type: "dialogue", character: "Hazel", text: "That's right. The giant was fascinated by their old job titles, and he made a word puzzle out of one of them." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Look at the three old trades listed in the first paragraph. One of them contains a hidden four-letter word for a vehicle, often pulled by a horse. Find that hidden word to reveal the name of the next Giant's Decoy."
+                    },
+                    type: "object",
+                    answer: "Farmers Old Cart",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘The Farmer’s Old Cart’ — that’s the one! The giant once tried to borrow a cart to move a rock, but when he sat on it the whole thing collapsed. He was so embarrassed he swore he’d never trust one with his treasure." },
+                        { type: "dialogue", character: "Moo", text: "But a cart is a good place to hide things!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "Not quite. The trades listed are wheelwrights, carters, and barbers. Only ‘carters’ contains the hidden word ‘cart’. That leads us to the decoy ‘The Farmer’s Old Cart’." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Hidden words don’t stand a chance against us!" }
+                },
+                {
+                    title: "The House of Friends",
+                    subtitle: "Clue #17",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "You follow the path right to the end of the road"},
+                        { type: "dialogue", character: "Hazel", text: "A left turn now, team!" },
+                        { type: "story", text: "The three of you turn left and continue walking, keeping the road on your right-hand side. Once you reach the garage, Hazel abrutly stops." },
+                        { type: "dialogue", character: "Hazel", text: "Hold up. The giant's next puzzle is over there. Look at that long row of old stone buildings." }
+                    ],
+                    directionsImages: ["straight.jpg","left.jpg","straight.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Moo", text: "18-something... another 18-something... they're all ancient! This is like a history lesson in stone." },
+                        { type: "dialogue", character: "Hazel", text: "Exactly. The giant made friends with the family in one of these buildings. He loved visiting them, so he named a False Trail after their home to remind himself not to get distracted." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Find the building with the year 1882 carved on it. Then read the unique name written above its door. That name is the key to our next elimination!"
+                    },
+                    type: "suspect",
+                    answer: "Davaar Diversion",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "Davaar — exactly. That makes the False Trail ‘The Davaar Diversion’. The family there always offered the giant Dundee cake and tea, and he’d lose hours. So he called it a diversion to remind himself to stay focused." },
+                        { type: "dialogue", character: "Moo", text: "Ah, so even giants can’t resist cake!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "Not quite. The puzzle was two steps: first find the building with 1882 carved in it, then the name above its door. That name is Davaar, which revealed the False Trail ‘The Davaar Diversion’." }
+                    ],
+                    motivationalQuote: { character: "Hazel", text: "Observant detectives never miss a name carved in stone." }
+                },
+                {
+                    title: "The Clerk's Code",
+                    subtitle: "Clue #18",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "You continue along the road from the old stone houses until you reach a zebra crossing."},
+                        { type: "dialogue", character: "Moo", text: "Time to demonstrate our road safety skills again!" },
+                        { type: "story", text: "Moo puffs out his chest and looks left and right with great exaggeration. Once you have all crossed safely, Hazel leads you left, stopping the team in front of a handsome stone building with a distinctive blue, house-shaped board." },
+                        
+                    ],
+                    directionsImages: ["straight.jpg","right.jpg","left.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "story", text: "As soon as your cross the road, you arrive at an old stone building"},
+                        { type: "dialogue", character: "Hazel", text: "It has some interesting information, but the giant was most fascinated by the very important-sounding job title written in the middle. He thought it sounded like a secret code, so he turned it into one for us. This is a two-part puzzle." },
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "This requires careful detective work. <br><br>Part 1: First, you must find the unusual, two-word job title written in the middle of the blue, house-shaped board. <br>Part 2: Once you have that title, you must collect these four letters from it: <br><br>•	The SIXTH letter of the FIRST word. <br>•	The SECOND letter of the SECOND word. <br>•	The FIRST letter of the SECOND word. <br>•	The FIFTH letter of the SECOND word. <br><br>Unscramble those four letters to spell something you would use with a key. That word will identify the next decoy on your list!"
+                    },
+                    type: "object",
+                    answer: "Rusty Old Lockbox",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "The title was Session Clerk. The letters gave us O, L, C, K — which spell LOCK. That reveals the decoy ‘The Rusty Old Lockbox’. The giant once bought it at a car boot sale but lost the only key down a rabbit hole, so he knew the treasure couldn’t be inside!" },
+                        { type: "dialogue", character: "Moo", text: "That’s a lockbox no one will ever open!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "This was tricky. The job title was Session Clerk. The 6th letter of Session is O. From Clerk we take L, C, and K. Together, they spell LOCK. That pointed to the decoy ‘The Rusty Old Lockbox’." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Codes cracked, locks unlocked — nothing can stop us now!" }
+                },
+                {
+                    title: "The Tiny Monster",
+                    subtitle: "Clue #19",
+                    cypherImage: "",
+                    directions: [
+                        { type: "dialogue", character: "Hazel", text: "Onwards to the woods!" },
+                        { type: "story", text: "Hazel takes the lead from the stone building. You continue along the road, keeping it on your left, until you reach a roundabout. Hazel guides you around and towards the first proper entrance into the trees. At the start of the trail you see a collection of large map displays and smaller posts." },
+                        
+                    ],
+                    directionsImages: ["straight.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "story", text: "Moo suddenly stops and points a trembling hoof at a small, green and white warning on a wooden post. "},
+                        { type: "dialogue", character: "Moo", text: "Eek! Tiny biting monsters!"},
+                        { type: "story", text: "Moo squeaks and hides behind you"},
+                        { type: "dialogue", character: "Hazel", text: "It’s just a safety notice, Moo. But the giant saw it and named one of his decoys after the tiny creature it mentions." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "The giant's puzzle is a play on words. Look at the green and white safety notice. First, you must identify the four-letter name of the tiny creature it warns you about. The sound that creature's name makes is the key to identifying the next decoy on your list."
+                    },
+                    type: "object",
+                    answer: "Ticking Clock-box",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "The creature is a tick. Its name gives us ‘ticking’. That points to ‘The Ticking Clock-box’. The giant hated ticking noises — he once got rid of a grandfather clock because it drove him mad. He’d never hide his gem in something noisy." },
+                        { type: "dialogue", character: "Moo", text: "Tick-tock, tick-tock… no thanks!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "This was a clever one. The warning was about ticks. Their name sounds like ticking, which revealed the decoy ‘The Ticking Clock-box’." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Tiny monster defeated! Onward, fearless detectives!" }
+                },
+                {
+                    title: "The Fork in the Road",
+                    subtitle: "Clue #20",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "Directions Just a few yards into the cool green of the woods, the path splits in two. A sturdy wooden post with two pointing arms stands at the fork, showing the way to two different places."},
+                        { type: "dialogue", character: "Moo", text: "A fork in the road! A classic dilemma for any great adventurer. This requires a moment of serious thought... and possibly a snack." },
+                        
+                    ],
+                    directionsImages: ["right.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "story", text: "Hazel trots up to the post and studies the pointing arms"},
+                        { type: "dialogue", character: "Hazel", text: "This isn't just a choice of direction, Moo, It's a very clever, two-part puzzle from the giant. He has combined the place names and the distances into a secret code to name his next False Trail"},
+                        
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Listen carefully, detective, here's how to crack the code. <br> Part 1: Look at the two fractional distances. You need to think of them in quarter-miles. How many quarter-miles is the distance on the left arm? And how many is the distance on the right arm? This will give you two new numbers. <br> Part 2: Now you have a number for each path. Use your number for the left path to take a letter from the place name on the left arm. Then use your number for the right path to take a letter from the place name on the right arm. Those two letters are the initials of the False Trail to cross off your list!"
+                    },
+                    type: "suspect",
+                    answer: "Echoing Alley",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "The left arm was ½ mile = 2 quarters. The 2nd letter of Menstrie is E. The right arm was ¾ mile = 3 quarters. The 3rd letter of Blairlogie is A. Together, E.A. gives us ‘The Echoing Alley’. The giant hated echoes — they repeated his booming voice and gave him a fright." },
+                        { type: "dialogue", character: "Moo", text: "HELLO! …HELLO! …HELLO! Yikes!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "Not quite. The fractions convert to quarter-miles: ½ = 2, ¾ = 3. That gave us the letters E from Menstrie and A from Blairlogie. Together, E.A. revealed ‘The Echoing Alley’." }
+                    ],
+                    motivationalQuote: { character: "Hazel", text: "Fractions, letters, echoes — solved in one go!" }
+                },
+
+
+
+
+                {
+                    title: "The Stairway",
+                    subtitle: "Clue #21",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "Taking the right-hand path at the wooden fork, the three of you head deeper into the woods. The path guides you past the quiet rear of the old stone church, and then alongside the back gardens of a row of houses." },
+                        { type: "dialogue", character: "Moo", text: "This feels like a secret passage!" },
+                        { type: "dialogue", character: "Hazel", text: "Look to your left, by that play park. The giant has left us a puzzle on the first rustic stairway you come across." }
+                    ],
+                    directionsImages: ["straight.jpg","straight.jpg","wait.jpg"],
+                    clueStory: [
+                        { type: "story", text: "After climbing the stairway, Moo is quite puffed out." },
+                        { type: "dialogue", character: "Moo", text: "That was a climb!" },
+                        { type: "dialogue", character: "Hazel", text: "It was also a clue. The giant hid a three-part puzzle right here in the number of risers. It's a true masterpiece of word magic." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Listen closely, here are the three precise steps: <br><br>Part 1: First, count the total number of risers or ledges in this stairway (including the very top one). <br><br>Part 2: Now, write that number down as a word. <br><br>Part 3: Look at the number you counted in Part 1. Take the first digit of that number. You must now remove the letter at that position from the word you wrote down in Part 2. <br><br>Finally, re-arrange the remaining letters to spell a magical word. That word is the key to identifying the next False Trail!"
+                    },
+                    type: "suspect",
+                    answer: "Elven Path",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘The Elven Path’! You solved it! The giant met elves once — they were serious, snooty, and had no time for his riddles. He decided their paths were far too boring for a treasure hunt. Definitely a false trail." },
+                        { type: "dialogue", character: "Moo", text: "But I like elves!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "This one was tricky. First we counted 11 steps = ELEVEN. Removing the 1st letter leaves LEVEN. Rearranging gives ELVEN. That was the key to finding the False Trail ‘The Elven Path’." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Steps, spells, elves — nothing slows us down!" }
+                },
+                {
+                    title: "The Orchard Code",
+                    subtitle: "Clue #22",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "You continue along the path for a short while, with Hazel leading the way." },
+                        { type: "dialogue", character: "Hazel", text: "The giant helped plant some of the first trees in this community garden. He left a special word puzzle for us on the green plaque." }
+                    ],
+                    directionsImages: ["straight.jpg","wait.jpg"],
+                    clueStory: [
+                        { type: "story", text: "Moo is still staringat the green plaque"},
+                        { type: "dialogue", character: "Moo", text: "My brain hurts just looking at all those words." },
+                        { type: "dialogue", character: "Hazel", text: "That’s because this is the giant’s ultimate word-code! It was his proudest creation — a chain reaction puzzle. Fiendishly difficult, but perfect for a master detective like you." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "To crack the code and find the initials of the next False Trail, you must follow these three steps exactly: <br><br> 1. First, find the number of letters in the fourth word on the plaque. Use that number to count along the letters of the third word and find your first initial. <br><br> 2. Next, find the number of letters in the third word. Use that number to count along the letters of the first word and find your second initial. <br><br> 3. Finally, find the number of letters in the first word. Use that number to count along the letters of the second word and find your third initial. These three letters are the initials of the False Trail we need to eliminate!"
+                    },
+                    type: "suspect",
+                    answer: "Dangerous Ivy Tunnel",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘The Dangerous Ivy Tunnel’ — cracked perfectly! The giant hated ivy. He thought it was full of spiders and woodlice that made him itch all over. Definitely a false trail." },
+                        { type: "dialogue", character: "Moo", text: "Spiders? Woodlice? No thank you!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "This was his toughest code. The letters worked out to D, I, and T — giving the initials for ‘The Dangerous Ivy Tunnel’. A truly fiendish puzzle." }
+                    ],
+                    motivationalQuote: { character: "Hazel", text: "Even the giant’s proudest riddle can’t stop us!" }
+                },
+                {
+                    title: "The Great Elimination Puzzle",
+                    subtitle: "Clue #23",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "Continuing along the path, you soon arrive at a major junction where the way splits into several different trails, marked by a collection of three different posts—two traditional wooden ones, and one large grey one. Moo spins in a circle. " },
+                        { type: "dialogue", character: "Moo", text: "So many paths! So many words! My head is spinning!" },
+                        
+                    ],
+                    directionsImages: ["straight.jpg","wait.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Hazel", text: "This is it, team, she says in a serious voice. The giant called this 'The Great Elimination Puzzle'. To find our true course, we must first figure out the one big False Trail he hid in plain sight. We need to use all three posts to solve it. This will test all our detective skills." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "To find the False Trail, you must follow these three instructions to the letter. <br><br> 1. First, make a list of all the words written on the brown, wooden pointing posts. (You can ignore the distances). <br><br> 2. Now, look only at the big grey marker for Menstrie Wood. Read its four listed trails. Eliminate any of those four trails that contain any of the words from your list. You should be left with two trails. <br><br> 3. Finally, count how many brown, wooden pointing posts there are here at this junction. Remove the trail from your remaining two that has that exact number of words in its name. <br><br>The one single trail you are left with is the False Trail we need to eliminate!"
+                    },
+                    type: "suspect",
+                    answer: "Dumyat Hill and Trail",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘Dumyat Hill and Trail’ — the ultimate false trail! The giant knew treasure hunters would assume the prize was on the most famous hill. He made it a double bluff." },
+                        { type: "dialogue", character: "Moo", text: "But Dumyat is huge! Surely the treasure—" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "The words from the wooden posts eliminated the two Hillfoots trails, leaving ‘Dumyat Hill and Trail’ and ‘Jerah Trail’. With two posts, we removed the two-word option — Jerah Trail. The only one left was ‘Dumyat Hill and Trail’." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Ha! Outsmarted the giant at his own ‘great puzzle’!" }
+                },
+                {
+                    title: "The Power of Water",
+                    subtitle: "Clue #24",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "Directions Leaving the main woodland trails behind, you continue along the path as it leads you back towards the village. Soon you reach a sturdy stone bridge that crosses the burn." },
+                        { type: "dialogue", character: "Hazel", text: "Don’t cross! The giant’s path turns here. We take the smaller path to the left, keeping the burn on our right." },
+                        { type: "story", text: "You follow her lead, and a few steps later, you find another history board." }
+                    ],
+                    directionsImages: ["straight.jpg","left.jpg","wait.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Hazel", text: "This board is all about the burn, says Hazel, reading the text. The giant was amazed by it. He couldn't believe the villagers used the water for everything, and even gave different parts of the burn special names depending on what they were used for."},
+                        { type: "dialogue", character: "Moo", text: "Special names? Like 'the splashy bit' and 'the bit with the interesting moss'?" },
+                        { type: "dialogue", character: "Hazel", text: "Something like that. The giant used one of the proper old names for his next decoy."}
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "The giant's puzzle is to find the name of a place, not a thing, says Hazel. According to the text on this board, there was a pool in the burn that had a 'name that suggests a more domestic use in days gone by'. What is the two-word name of that specific pool? That name is the key to identifying our next decoy."
+                    },
+                    type: "object",
+                    answer: "Washing Basket",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘The Washing Basket’! Exactly. The giant only owned one set of clothes, which he washed once a year under a waterfall. He had no need for a washing basket. Clever decoy." },
+                        { type: "dialogue", character: "Moo", text: "Once a year?! Remind me not to sit too close to him." }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "Not quite. The pool was called the ‘Washing Linne’. That pointed us to the decoy ‘The Washing Basket’." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Splish-splash! Another clue scrubbed clean!" }
+                },
+                {
+                    title: "The Master Code",
+                    subtitle: "Clue #25",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "Crossing over the stone bridge, Hazel immediately guides you right to a tall, modern route marker." },
+                        { type: "dialogue", character: "Hazel", text: "This is it — the giant’s final puzzle before the home stretch. He put all his best tricks into this one." },
+                        
+                    ],
+                    directionsImages: ["u-turn.jpg","left.jpg","right.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "story", text: "Moo looks at the marker, which is covered in different coloured trails and arrows pointing everywhere. "},
+                        { type: "dialogue", text: "It looks like a bowl of spaghetti! I'll never figure this out!"},
+                        { type: "dialogue", character: "Hazel", text: "Step 1: Find the trail marked with a blue box and note its distance. Step 2: Add the two digits of that number together. Step 3: Find the list of villages on that trail. Step 4: Use your number to pick a village from that list. That’s our False Trail." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Listen very closely, and follow these four steps exactly. <br> 1. First, find the trail marked with a BLUE box. Find the total length of this trail in miles. <br> 2. Next, take the two digits that make up that number and add them together to get a new, smaller number. <br> 3. Now, find the list of villages that this specific trail passes through. <br> 4. Finally, use the number you worked out in Step 2 to count along that list of villages. The village at that position in the list is the name of our False Trail!"
+                    },
+                    type: "suspect",
+                    answer: "Tillicoultry Trek",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘The Tillicoultry Trek’ — you cracked the master code! The giant hated Tillicoultry. He once got lost trying to find a bakery there and decided the town was too confusing for treasure." },
+                        { type: "dialogue", character: "Moo", text: "A lost giant? That must’ve been a sight!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "This was tough. The blue trail was 13 miles. 1+3=4. The 4th village on the list was Tillicoultry. That revealed the False Trail ‘The Tillicoultry Trek’." }
+                    ],
+                    motivationalQuote: { character: "Hazel", text: "The master code cracked — nothing can stop us now!" }
+                },
+                {
+                    title: "The Garden of Memories",
+                    subtitle: "Clue #26",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "Hazel leads you into the peaceful village green." },
+                        { type: "dialogue", character: "Hazel", text: "The giant loved this place. It’s a garden of memories." },
+                        { type: "story", text: "She guides you to a large display board detailing the garden’s story and map of the trees." }
+                    ],
+                    directionsImages: ["straight.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Moo", text: "So many people…" },
+                        { type: "dialogue", character: "Hazel", text: "The giant wanted to honour one of them with a puzzle. He created a code using the roads and the memorial list." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "To crack this code, you must follow these three steps precisely: <br> 1. Look closely at the map. You must find the names of the two roads that run along the very top (north) and side (east) of the main rectangular garden area. <br> 2. Count the number of letters in the first word of each of those two road names and add those two counts together. <br> 3. Take your final number and find the person who is remembered at that number on the long list titled 'Those who are remembered:'Their full name is the key to the next False Trail!"
+                    },
+                    type: "suspect",
+                    answer: "Sybil's Path",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘Sybil’s Path’ — exactly. The giant knew Sybil Khan, a painter who loved slow, meandering walks. He marked her path as a tribute, but knew it wasn’t the way to treasure." },
+                        { type: "dialogue", character: "Moo", text: "A painter’s path — that’s beautiful." }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "Not quite. Ochil Road has 5 letters, Park Road 4. Together = 9. The 9th name on the list is Sybil Khan, which revealed ‘Sybil’s Path’." }
+                    ],
+                    motivationalQuote: { character: "Hazel", text: "Memories honoured, mystery solved." }
+                },
+                {
+                    title: "The Metal Boy",
+                    subtitle: "Clue #27",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "You leave the history board and walk into the middle of the green." },
+                        { type: "dialogue", character: "Moo", text: "Wow! Look at that!" },
+                        { type: "story", text: "In the centre is a marvellous metalwork creation: a strange boy with huge ears sitting on an arch." }
+                    ],
+                    directionsImages: ["wait.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Moo", text: "Is he a bat? Or a very tall rabbit?" },
+                        { type: "dialogue", character: "Hazel", text: "He’s a friend of the giant’s. The giant loved this metal boy and decided to name a decoy after the animal he thought he looked like." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Look at the boy’s pointy face and very large ears. What three-letter woodland creature is he meant to be? The name of that animal is the key to the next decoy on your list."
+                    },
+                    type: "object",
+                    answer: "Fox's Lunchbox",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘The Fox’s Lunchbox’ — correct! The giant knew foxes were clever hunters. They’d never carry a lunchbox, so it was a trick." },
+                        { type: "dialogue", character: "Moo", text: "A foxy piece of detective work!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "Not quite. The boy’s pointy snout and big ears point to a fox. That revealed the decoy ‘The Fox’s Lunchbox’." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Clever as a fox — and twice as quick!" }
+                },
+
+
+                {
+                    title: "The Sweet Trees",
+                    subtitle: "Clue #28",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "You are still in the peaceful village green. Hazel leads you to another large information board explaining the history of this special garden." },
+                        { type: "dialogue", character: "Moo", text: "'Nova Scotia Gardens'. That's a funny name. Nova Scotia is in Canada! Why would they name a garden in Menstrie after somewhere so far away?" },
+                        { type: "dialogue", character: "Hazel", text: "This board explains why. It's all because of special trees planted here to celebrate an 'international link'. The giant was very impressed and named a decoy after them." }
+                    ],
+                    directionsImages: ["wait.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Moo", text: "'Nova Scotia Gardens'. That's a funny name. Nova Scotia is in Canada! Why would they name a garden in Menstrie after somewhere so far away?" },
+                        { type: "dialogue", character: "Hazel", text: "This board explains why. It's all because of special trees planted here to celebrate an 'international link'. The giant was very impressed and named a decoy after them." }
+                        
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Your puzzle is to read the board and find the five-letter name of the Canadian trees that commemorate this link. That tree's name is the key to the decoy."
+                    },
+                    type: "object",
+                    answer: "Sticky Maple Syrup Tin",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘The Sticky Maple Syrup Tin’ — correct! The giant was a messy eater. He once got a tin stuck in his beard for a week. After that he decided syrup was far too sticky to hide treasure in!" },
+                        { type: "dialogue", character: "Moo", text: "That must’ve been… uncomfortable." }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "Not quite. The board says 'Canadian maple trees' were planted. That was the five-letter word we needed. It pointed to the decoy ‘The Sticky Maple Syrup Tin’." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Sweet success! Another decoy gone!" }
+                },
+                {
+                    title: "The Future and the Past",
+                    subtitle: "Clue #29",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "Hazel leads you further into the gardens, stopping at a smart silver plaque set between two stones." },
+                                                { type: "dialogue", character: "Hazel", text: "The giant wanted us to see one last thing here," }
+                    ],
+                    directionsImages: ["wait.jpg"],
+                    clueStory: [
+                        { type: "story", text: "Moo reads the plague quietly"},
+                        { type: "dialogue", character: "Moo", text: "This is a place for thinking."},
+                        { type: "dialogue", character: "Hazel", text: "YIt is. The giant was very wise and understood that history is very important. He was so moved by the message on this plaque that he named a False Trail after part of it." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "The giant's puzzle is about the main motto on this plaque, Look for the powerful slogan that runs up the left-hand side. What are the first three words of this important message? That phrase is the key to identifying the next False Trail on your list."
+                    },
+                    type: "suspect",
+                    answer: "Remember The Past Path",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘Remembering The Past Path’. Correct. But the giant believed treasure hunts should look forward, not backward. This path is for reflection, not treasure." },
+                        { type: "dialogue", character: "Moo", text: "Wise words… but not for a giant’s gem!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "The full slogan is 'REMEMBERING THE PAST - PROTECTING THE FUTURE'. The clue asked for the first three words: ‘Remembering The Past’. That revealed the False Trail." }
+                    ],
+                    motivationalQuote: { character: "Hazel", text: "The past remembered, the trail eliminated." }
+                },
+                {
+                    title: "The Friends from Far Away",
+                    subtitle: "Clue #30",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "You leave the garden's information board and walk a short distance to the tall, stone war memorial that stands proudly in the green. Moo and Hazel fall quiet as they approach, sensing this is a place for quiet thoughts." },
+                        
+                    ],
+                    directionsImages: ["wait.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Moo", text: "So many names. They were all very brave" },
+                        { type: "story", text: "Hazel nods in solemn agreement"},
+                        { type: "dialogue", character: "Hazel", text: "They were. The giant knew it was important to remember everyone who helped, especially friends who came from far away to help protect this place. He named his final False Trail in their honour."}
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "To find our very last False Trail, you must look for the plaque that was 'Presented by Menstrie Community Council'. It commemorates a brave group of soldiers from another country who were stationed here. What is the six-letter nationality of these troops? That word is the name of the final False Trail to cross off our list"
+                    },
+                    type: "suspect",
+                    answer: "Polish Path",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘The Polish Path’. Correct. The giant honoured them but knew their real journey was far greater than his treasure path. He kept this as a tribute, not the real way." },
+                        { type: "dialogue", character: "Moo", text: "Brave and far from home." }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "The plaque commemorates the Polish Troops. The six-letter nationality was 'Polish'. That revealed the False Trail ‘The Polish Path’." }
+                    ],
+                    motivationalQuote: { character: "Hazel", text: "With every false trail gone, the true path awaits." }
+                },
+                {
+                    title: "The Baron's Land",
+                    subtitle: "Clue #31",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "You leave the main green and head to the main road. You turn right and after a short distance you find a quiet little paved garden tucked away nearby. Two neat bluey-green seats face each other over some flowerbeds." },
+                        { type: "dialogue", character: "Moo", text: "What a peaceful spot." },
+                        { type: "dialogue", character: "Hazel", text: "The giant agreed. He left a clue here on the stone wall." },
+                        { type: "story", text: "You spot the familiar Coat of Arms, but this time it has a bronze plaque underneath it. It says these lands had a very fancy title."}
+                        
+                    ],
+                    directionsImages: ["right.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Moo", text: "We've seen that shield before!But this bronze plaque is new. It says these lands had a very fancy title."},
+                        { type: "dialogue", character: "Hazel", text: "They did. The giant was very impressed with the grand-sounding name. He thought it sounded so noble that he named one of his decoys after it."}
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "Your puzzle is to find that noble title. Look on the bronze plaque. What is the six-letter word it uses to describe the 'Lands... of Menstrie'? The name of that title is the key to the next decoy you must eliminate."
+                    },
+                    type: "object",
+                    answer: "Baroness's Bonnet-box",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘The Baroness’s Bonnet-box’. Exactly. The giant knew the Baroness never wore bonnets — only a tam o’ shanter! So he marked the bonnet-box as a trick." },
+                        { type: "dialogue", character: "Moo", text: "Formidable indeed!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "The plaque reads 'The Lands and Barony of Menstrie'. The six-letter word ‘Barony’ led us to the decoy ‘The Baroness’s Bonnet-box’." }
+                    ],
+                    motivationalQuote: { character: "Moo", text: "Barony beaten, bonnet-box banished!" }
+                },
+                {
+                    title: "The Friendly Word",
+                    subtitle: "Clue #32",
+                    cypherImage: "",
+                    directions: [
+                        { type: "story", text: "You leave the quiet of the gardens and turn left, walking with the road on your right until you reach the zebra crossing. Moo insists on leading the way, looking left and right at least ten times before marching across. Once you're all safely over, you turn left again, and stop in front of a grand stone building with a steeply pitched roof." }
+                        
+                    ],
+                    directionsImages: ["u-turn.jpg","right.jpg","stop.jpg"],
+                    clueStory: [
+                        { type: "dialogue", character: "Moo", text: "Ooh, look!" },
+                        { type: "story", text: "Moo points up at the handsome wooden arch above the main doors."},
+                        { type: "dialogue", character: "Hazel", text: "The giant was never sure about that word. He thought it might be a challenge, or a dare. He named one of his decoys after it, just in case."},
+                        
+                ],
+                    task: {
+                        character: "Hazel",
+                        text: "Your puzzle is to look at the single, seven-letter word carved in big letters on that wooden arch, What is this friendly word of greeting? Its name is the key to identifying our second-to-last decoy."
+                    },
+                    type: "object",
+                    answer: "Welcome Mat",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘The Welcome Mat’. Correct. The giant’s muddy boots would’ve left a huge print pointing straight at the gem. Too obvious to be real!" },
+                        { type: "dialogue", character: "Moo", text: "So much for hospitality!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "The arch says ‘WELCOME’. That pointed to the decoy ‘The Welcome Mat’." }
+                    ],
+                    motivationalQuote: { character: "Hazel", text: "A friendly word — but no friend to treasure!" }
+                },
+                {
+                    title: "The Final Puzzle",
+                    subtitle: "Clue #33",
+                    cypherImage: "",
+                    directions: [
+                        { type: "dialogue", character: "Moo", text: "The final clue!" },
+                        { type: "story", text: "Moo does a little dance."},
+                        { type: "dialogue", character: "Moo", text: "Which way, Hazel?" },
+                        { type: "story", text: "With your back to the stone building, Hazel takes a decisive right turn." },
+                        { type: "dialogue", character: "Hazel", text: "This way, towards Park Road!"},
+                        { type: "story", text: "The three of you follow her until you reach the road, where she turns right again."},
+                        { type: "dialogue", character: "Hazel", text: "The giant said his final puzzle was in the park."},
+                        { type: "story", text: "Hazel points to an entrance slipping off to the left. As you enter the park, you see a collection of strange metal contraptions and a large green board."}
+                    ],
+                    directionsImages: ["straight.jpg","right.jpg","left.jpg"],
+                    clueStory: [
+                        { type: "story", text: "Moo is pushing the Air Walker back and forth."},
+                        { type: "dialogue", character: "Moo", text: "This is fun! It feels like I'm walking without going anywhere!" },
+                        { type: "story", text: "Hazel watches him for a moment before turning to the big green instruction board."},
+                        { type: "dialogue", character: "Hazel", text: "This is it, team. The giant's very last puzzle. He told me the final decoy is revealed by a word puzzle hidden in the name of one of these strange machines." }
+                    ],
+                    task: {
+                        character: "Hazel",
+                        text: "To eliminate our final decoy, you must first find the correct machine on the green board. It's the one that the board says provides an 'excellent cardio workout' and also works your 'forearms'. Once you've identified that machine, take the last word of its three-word name. Now, re-arrange the letters of that seven-letter word to spell out a new word. That new word is the key to the final decoy!"
+                    },
+                    type: "object",
+                    answer: "Box of Bumpy Terrain",
+                    correctAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "‘The Box of Bumpy Terrain’! That’s the last one. The giant loved maps, but always said a box of terrain is no substitute for the real hills and woods. And with that… all sixteen decoys are gone!" },
+                        { type: "dialogue", character: "Moo", text: "Which means the real treasure is ours to find!" }
+                    ],
+                    wrongAnswerReason: [
+                        { type: "dialogue", character: "Hazel", text: "The Elliptical Cross Trainer was the machine. The last word is TRAINER. Rearranged, it spells TERRAIN — which led to the decoy ‘The Box of Bumpy Terrain’." }
+                    ],
+                    motivationalQuote: { character: "Hazel", text: "All decoys cleared. Only the true treasure remains." }
+                },
+
+
+
+
+
+                ],
+                awardTiers: [
+                    { score: 3200, img: '100.jpg', title: '🦸 Mastermind of Mysteries', dialogue: [
+                        { character: 'Moo', text: "“<player's name>! You’ve cracked every clue! I always knew you were secretly… a genius in disguise. Possibly disguised as a genius.”" },
+                        { character: 'Hazel', text: "“Disguised or not, <player's name> just solved everything. Meanwhile, you’re still trying to interrogate a tree.”" }
+                    ]},
+                    { score: 2900, img: '90.jpg', title: '🕵️ Super Sleuth', dialogue: [
+                        { character: 'Moo', text: "“<player's name>! You were magnificent — just shy of perfection! If only you’d listened to my brilliant theories about the hedges.”" },
+                        { character: 'Hazel', text: "“If <player's name> had listened to you, we’d still be questioning the birdbath. Good work, <player's name>.”" }
+                    ]},
+                    { score: 2400, img: '75.jpg', title: '🔍 Clever Clue-Hound', dialogue: [
+                        { character: 'Moo', text: "“<player's name>, you sniffed out most of the trail! You’re practically honorary cow-detective now.”" },
+                        { character: 'Hazel', text: "“They did well, Moo. But let’s not pretend a cow has ever successfully solved anything.”" }
+                    ]},
+                    { score: 1600, img: '50.jpg', title: '🐾 Bumbling Bloodhound', dialogue: [
+                        { character: 'Moo', text: "“Ah, <player's name> — you stumbled, you fumbled, but you made it here in the end! That’s the spirit of a true… confused champion.”" },
+                        { character: 'Hazel', text: "“You mean ‘determined’. Though ‘confused’ fits too. Well done anyway, <player's name>.”" }
+                    ]},
+                    { score: 800, img: '25.jpg', title: '🤔 Confused Constable', dialogue: [
+                        { character: 'Moo', text: "“Well… <player's name>… you did catch some clues. Which is more than I can say for Hazel when she tried to catch her own tail.”" },
+                        { character: 'Hazel', text: "“Unlike you, <player's name> actually helped — even if they did accuse a flowerpot at one point.”" }
+                    ]},
+                    { score: 300, img: '10.jpg', title: '😵 Lost in the Labyrinth', dialogue: [
+                        { character: 'Moo', text: "“Oh dear. <player's name>, you appear to have been… heroically lost the entire time. Admirable commitment to wandering aimlessly!”" },
+                        { character: 'Hazel', text: "“At least <player's name> didn’t try to arrest the sun like you did, Moo. Progress.”" }
+                    ]},
+                    { score: 0, img: '00.jpg', title: '🐌 Detective Sloth', dialogue: [
+                        { character: 'Moo', text: "“Ah, <player's name>. Clearly saving your energy for… the next case. A bold tactic.”" },
+                        { character: 'Hazel', text: "“Or maybe just asleep the whole time, like you during stakeouts, Moo. Better luck next time, <player's name>.”" }
+                    ]}
+                ]
+            };
+
+            // --- CORE FUNCTIONS ---
+
+            function renderNarrative(contentContainer, narrativeData) {
+                contentContainer.innerHTML = ''; // Clear previous content
+                narrativeData.forEach(item => {
+                    const dialogueClass = item.character === 'Hazel' ? 'dialogue-hazel' :
+                                      item.character === 'Moo' ? 'dialogue-moo' : 'dialogue-other';
+
+                    if (item.type === 'story') {
+                        const storyContainer = document.createElement('div');
+                        storyContainer.className = 'story-paragraph-container';
+                        storyContainer.innerHTML = `
+                            <div class="icon"><img src="book.png" alt="Story icon" onerror="this.style.display='none'"/></div>
+                            <p>${item.text}</p>
+                        `;
+                        contentContainer.appendChild(storyContainer);
+                    } else if (item.type === 'dialogue') {
+                        const speakerData = gameData.characters.find(s => s.name === item.character);
+                        const speaker = speakerData || { name: 'Narrator', img: 'book.png' };
+                        const dialogueContainer = document.createElement('div');
+                        dialogueContainer.className = `dialogue-container ${dialogueClass}`;
+                        dialogueContainer.innerHTML = `
+                            <img src="${speaker.img}" alt="${speaker.name}" class="character-avatar" onerror="this.style.display='none'">
+                            <p>${item.text.replace('<span id="player-name-placeholder">Detective</span>', `<span id="player-name-placeholder">${gameState.detectiveName}</span>`)}</p>
+                        `;
+                        contentContainer.appendChild(dialogueContainer);
+                    }
+                });
+            }
+
+            function navigateTo(screenName) {
+                gameState.currentScreen = screenName;
+                renderUI();
+
+                const clue = gameData.clues[gameState.currentClueIndex];
+
+                if (screenName === 'story') {
+                    renderNarrative(elements.dynamicContent.storyScreenContent, gameData.storyScreens.story);
+                } else if (screenName === 'introStory') {
+                    renderNarrative(elements.dynamicContent.introStoryContent, gameData.storyScreens.introStory);
+                }
+
+                if (!clue && screenName !== 'grandReveal' && screenName !== 'detectiveAward' && screenName !== 'certificate') {
+                    if(screenName === 'progress') updateProgressScreen();
+                    return;
+                }
+
+                // Update progress indicators
+                if (clue) {
+                    const progressText = `${clue.subtitle.replace('#', '')} of ${gameData.clues.length}`;
+                    Object.values(elements.dynamicContent.progressIndicators).forEach(indicator => {
+                        indicator.textContent = progressText;
+                    });
+                }
+
+
+                if (screenName === 'cluePopup') {
+                    elements.dynamicContent.cluePopupTitle.textContent = `🔎 ${clue.subtitle} - ${clue.title}`;
+                    setTimeout(() => navigateTo('directions'), 2500);
+                } else if (screenName === 'directions') {
+                    elements.dynamicContent.directionsSubtitle.textContent = clue.title;
+                    renderNarrative(elements.dynamicContent.directionsContent, clue.directions);
+                    // Render arrows
+                    const arrowsContainer = elements.dynamicContent.directionsArrowsContainer;
+                    arrowsContainer.innerHTML = ''; // Clear old arrows
+                    if (clue.directionsImages && clue.directionsImages.length > 0) {
+                        clue.directionsImages.forEach(imgSrc => {
+                            const img = document.createElement('img');
+                            img.src = imgSrc;
+                            img.className = 'arrow-icon';
+                            img.onerror = () => img.style.display = 'none';
+                            arrowsContainer.appendChild(img);
+                        });
+                    }
+                } else if (screenName === 'clueStory') {
+                    elements.dynamicContent.clueStorySubtitle.textContent = clue.title;
+                    renderNarrative(elements.dynamicContent.clueStoryContent, clue.clueStory);
+                }
+            }
+
+            function updateProgressScreen(isFinalReport = false) {
+                gameState.isFinalReport = isFinalReport;
+                const totalClues = gameData.clues.length;
+                const cluesCompleted = gameState.currentClueIndex;
+                const targetPercentage = totalClues > 0 ? Math.round((cluesCompleted / totalClues) * 100) : 0;
+
+                // Animate the progress bar
+                if (gameState.progressBarInterval) clearInterval(gameState.progressBarInterval);
+                let currentBarPercentage = parseInt(elements.dynamicContent.progressBar.style.width) || 0;
+
+                gameState.progressBarInterval = setInterval(() => {
+                    if (currentBarPercentage < targetPercentage) {
+                        currentBarPercentage++;
+                        elements.dynamicContent.progressBar.style.width = `${currentBarPercentage}%`;
+                        elements.dynamicContent.progressBar.textContent = `${currentBarPercentage}%`;
+                    } else {
+                        clearInterval(gameState.progressBarInterval);
+                    }
+                }, 20);
+
+                // Animate Correctness Circle
+                const targetCorrectness = cluesCompleted > 0 ? Math.round((gameState.correctAnswers / cluesCompleted) * 100) : 0;
+                const circle = elements.dynamicContent.correctnessCircle;
+                const radius = circle.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                circle.style.strokeDasharray = `${circumference} ${circumference}`;
+
+                if (gameState.correctnessAnimationInterval) clearInterval(gameState.correctnessAnimationInterval);
+                let currentCorrectness = parseInt(elements.dynamicContent.correctnessPercentage.textContent) || 0;
+
+                gameState.correctnessAnimationInterval = setInterval(() => {
+                    if (currentCorrectness < targetCorrectness) {
+                        currentCorrectness++;
+                    } else if (currentCorrectness > targetCorrectness) {
+                        currentCorrectness--;
+                    } else {
+                        clearInterval(gameState.correctnessAnimationInterval);
+                    }
+                    const offset = circumference - currentCorrectness / 100 * circumference;
+                    circle.style.strokeDashoffset = offset;
+                    elements.dynamicContent.correctnessPercentage.textContent = `${currentCorrectness}%`;
+                }, 20);
+
+                // Apply sparkle effect
+                const correctnessGraphic = elements.dynamicContent.correctnessGraphic;
+                correctnessGraphic.classList.remove('sparkle-gold', 'sparkle-silver', 'sparkle-bronze');
+                if (targetCorrectness >= 90) correctnessGraphic.classList.add('sparkle-gold');
+                else if (targetCorrectness >= 75) correctnessGraphic.classList.add('sparkle-silver');
+                else if (targetCorrectness >= 50) correctnessGraphic.classList.add('sparkle-bronze');
+
+
+                elements.dynamicContent.progressMessage.textContent = `You have completed ${cluesCompleted} out of ${totalClues} clues.`;
+
+                // Update Milestones
+                for (const key in elements.dynamicContent.milestones) {
+                    if (targetPercentage >= parseInt(key)) {
+                        elements.dynamicContent.milestones[key].classList.add('active');
+                    } else {
+                        elements.dynamicContent.milestones[key].classList.remove('active');
+                    }
+                }
+
+                // Update Summary
+                elements.dynamicContent.progressSummary.innerHTML = `
+    <strong>Trails Eliminated:</strong> ${gameState.eliminatedSuspects.length} <br>
+    <strong>Locations Eliminated:</strong> ${gameState.eliminatedObjects.length}
+`;
+
+                // Update Motivational Quote
+                const clueIndexForQuote = Math.max(0, gameState.currentClueIndex - 1);
+                const quoteData = gameData.clues[clueIndexForQuote]?.motivationalQuote;
+                if (quoteData && !isFinalReport) {
+                    renderNarrative(elements.dynamicContent.motivationalQuoteContainer, [{ type: 'dialogue', character: quoteData.character, text: quoteData.text }]);
+                } else {
+                    elements.dynamicContent.motivationalQuoteContainer.innerHTML = '';
+                }
+
+                // Update button text based on game state
+                if (gameState.currentClueIndex >= totalClues) {
+                    elements.buttons.progressContinue.textContent = "See the Grand Reveal!";
+                } else {
+                    elements.buttons.progressContinue.textContent = "Next Clue";
+                }
+
+                navigateTo('progress');
+            }
+
+
+            function renderUI() {
+                for (const screenKey in elements.screens) {
+                    elements.screens[screenKey].classList.remove('active');
+                }
+                if (elements.screens[gameState.currentScreen]) {
+                    elements.screens[gameState.currentScreen].classList.add('active');
+                }
+            }
+
+            function loadClueScreen() {
+                const clue = gameData.clues[gameState.currentClueIndex];
+                if (!clue) return; // No more clues
+
+                // Reset the task screen to its initial state
+                elements.taskScreenViews.main.style.display = 'block';
+                elements.taskScreenViews.selection.style.display = 'none';
+                elements.taskScreenViews.feedback.style.display = 'none';
+                elements.taskScreenViews.notebook.style.display = 'none';
+                elements.taskScreenViews.cypher.style.display = 'none';
+
+                elements.dynamicContent.taskSubtitle.textContent = clue.title; // Use title instead of subtitle
+
+                // Populate dialogue container
+                const dialogueContainer = elements.dynamicContent.taskDialogueContainer;
+                dialogueContainer.innerHTML = ''; // Clear previous content
+
+                const task = clue.task;
+                const speakerData = gameData.characters.find(s => s.name === task.character);
+
+                const dialogueClass = task.character === 'Hazel' ? 'dialogue-hazel' :
+                                      task.character === 'Moo' ? 'dialogue-moo' : 'dialogue-other';
+                dialogueContainer.className = 'dialogue-container'; // Reset
+                dialogueContainer.classList.add(dialogueClass);
+
+                if (speakerData) {
+                    const avatar = document.createElement('img');
+                    avatar.src = speakerData.img;
+                    avatar.alt = speakerData.name;
+                    avatar.className = 'character-avatar';
+                    dialogueContainer.appendChild(avatar);
+                }
+
+                const dialogueP = document.createElement('p');
+                dialogueP.innerHTML = '“' + task.text + '”';
+                dialogueContainer.appendChild(dialogueP);
+
+                elements.buttons.showSuspects.disabled = clue.type !== 'suspect';
+                elements.buttons.showObjects.disabled = clue.type !== 'object';
+
+                // Handle Cypher button visibility
+                if (clue.cypherImage) {
+                    elements.buttons.showCypher.style.display = 'inline-block';
+                } else {
+                    elements.buttons.showCypher.style.display = 'none';
+                }
+
+                navigateTo('task');
+            }
+
+            function showGrid(type) {
+                // Hide main view, show selection view
+                elements.taskScreenViews.main.style.display = 'none';
+                elements.taskScreenViews.selection.style.display = 'block';
+
+                const items = [...gameData[type]];
+
+                // Shuffle the items array using Fisher-Yates algorithm
+                for (let i = items.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [items[i], items[j]] = [items[j], items[i]];
+                }
+
+                let selectionTitle = '';
+if (type === 'suspects') {
+    selectionTitle = 'Select a Suspect';
+} else if (type === 'objects') {
+    selectionTitle = 'Select a Location';
+}
+elements.selectionGrid.title.textContent = selectionTitle;
+
+                elements.selectionGrid.content.innerHTML = ''; // Clear previous grid items
+                elements.selectionGrid.feedback.textContent = "Select one item as your answer.";
+                gameState.playerSelection = null;
+
+                items.forEach(item => {
+                    const clone = elements.templates.gridItem.content.cloneNode(true);
+                    const div = clone.querySelector('.grid-item');
+                    const img = clone.querySelector('img');
+                    const p = clone.querySelector('p');
+
+                    div.dataset.name = item.text; // Use .text
+                    img.src = item.image;         // Use .image
+                    img.alt = item.text;          // Use .text
+                    p.textContent = item.text;    // Use .text
+
+                    const isEliminated = (type === 'suspects' && gameState.eliminatedSuspects.includes(item.text)) ||
+                     (type === 'objects' && gameState.eliminatedObjects.includes(item.text));
+
+                    if (isEliminated) {
+                        div.classList.add('eliminated');
+                    } else {
+                        div.addEventListener('click', () => handleGridItemClick(item.text, div));
+                    }
+
+                    elements.selectionGrid.content.appendChild(clone);
+                });
+            }
+
+            function handleGridItemClick(itemName, clickedElement) {
+                const allItems = elements.selectionGrid.content.querySelectorAll('.grid-item');
+                allItems.forEach(item => item.classList.remove('selected'));
+
+                clickedElement.classList.add('selected');
+                gameState.playerSelection = itemName;
+                elements.selectionGrid.feedback.textContent = `Selected: ${itemName}`;
+            }
+
+            function closeGrid() {
+                 // Hide selection view, show main view
+                elements.taskScreenViews.selection.style.display = 'none';
+                elements.taskScreenViews.main.style.display = 'block';
+            }
+
+            function confirmSelection() {
+                const clue = gameData.clues[gameState.currentClueIndex];
+                if (!gameState.playerSelection) {
+                    elements.selectionGrid.feedback.textContent = "Please select an item first!";
+                    return;
+                }
+
+                // Hide the selection grid
+                elements.taskScreenViews.selection.style.display = 'none';
+
+                const itemToEliminate = clue.answer;
+                const isCorrect = gameState.playerSelection === clue.answer;
+
+                // Update game state
+                if (isCorrect) {
+                    gameState.correctAnswers++;
+                } else {
+                    gameState.incorrectGuesses++;
+                }
+
+                if (clue.type === 'object') {
+                    if (!gameState.eliminatedObjects.includes(itemToEliminate)) gameState.eliminatedObjects.push(itemToEliminate);
+                } else if (clue.type === 'suspect') {
+                    if (!gameState.eliminatedSuspects.includes(itemToEliminate)) gameState.eliminatedSuspects.push(itemToEliminate);
+                }
+                gameState.currentClueIndex++;
+
+                // Show and populate the feedback view
+                const feedbackContainer = elements.taskScreenViews.feedback;
+                feedbackContainer.style.display = 'block';
+                feedbackContainer.className = 'feedback-container ' + (isCorrect ? 'correct' : 'incorrect');
+
+                elements.feedbackView.title.textContent = isCorrect ? "Correct!" : "Not Quite...";
+                const narrative = isCorrect ? clue.correctAnswerReason : clue.wrongAnswerReason;
+                renderNarrative(elements.feedbackView.narrative, narrative);
+            }
+
+            // --- Game End Flow Functions ---
+
+            function showGrandReveal() {
+                // Find the remaining suspect (the culprit)
+                // --- FIX: Changed s.name to s.text ---
+                const culprit = gameData.suspects.find(s => !gameState.eliminatedSuspects.includes(s.text));
+                // Find the remaining object (the tool)
+                // --- FIX: Changed o.name to o.text ---
+                const usedObject = gameData.objects.find(o => !gameState.eliminatedObjects.includes(o.text));
+
+                if (culprit) {
+                    // --- FIX: Changed culprit.img to culprit.image and culprit.name to culprit.text ---
+                    elements.reveal.culpritImg.src = culprit.image;
+                    elements.reveal.culpritName.textContent = culprit.text;
+                }
+                if (usedObject) {
+                    // --- FIX: Changed usedObject.img to usedObject.image and usedObject.name to usedObject.text ---
+                    elements.reveal.usedObjectImg.src = usedObject.image;
+                    elements.reveal.usedObjectName.textContent = usedObject.text;
+                }
+
+                // Render the reveal story
+                renderNarrative(elements.reveal.storyContent, gameData.storyScreens.revealStory);
+
+                navigateTo('grandReveal');
+            }
+
+            function showDetectiveAward() {
+                // Calculate score
+                const baseScore = gameState.correctAnswers * 100;
+                const errorPenalty = gameState.incorrectGuesses * 25;
+
+                gameState.finalScore = baseScore - errorPenalty;
+
+                // Find the correct award tier
+                let award = gameData.awardTiers.find(t => gameState.finalScore >= t.score) || gameData.awardTiers[gameData.awardTiers.length - 1];
+                gameState.finalRank = award.title;
+
+                // Populate the award screen
+                elements.award.badgeImg.src = award.img;
+                elements.award.badgeImg.alt = award.title;
+                elements.award.titleText.textContent = award.title;
+
+                // Populate score breakdown
+                elements.award.baseScore.textContent = baseScore;
+                elements.award.errorPenalty.textContent = `-${errorPenalty}`;
+                elements.award.finalScore.textContent = Math.round(gameState.finalScore);
+
+                // Replace placeholder and render dialogue
+                const personalizedDialogue = award.dialogue.map(d => ({
+                    type: 'dialogue',
+                    character: d.character,
+                    text: d.text.replace(/<player's name>/g, gameState.detectiveName)
+                }));
+                renderNarrative(elements.award.dialogueContainer, personalizedDialogue);
+
+                navigateTo('detectiveAward');
+            }
+
+            function showCertificate() {
+                elements.certificate.playerName.textContent = gameState.detectiveName;
+                elements.certificate.rank.textContent = gameState.finalRank;
+                navigateTo('certificate');
+            }
+
+
+            // --- EVENT LISTENERS ---
+            elements.buttons.start.addEventListener('click', () => {
+                // Only reset the game state IF we are starting a genuinely new game
+                if (gameState.currentClueIndex === 0) {
+                    gameState.detectiveName = '';
+                    gameState.currentScreen = 'welcome';
+                    gameState.correctAnswers = 0;
+                    gameState.incorrectGuesses = 0;
+                    gameState.finalScore = 0;
+                    gameState.finalRank = '';
+                    gameState.playerSelection = null;
+                    gameState.eliminatedObjects = [];
+                    gameState.eliminatedSuspects = [];
+                }
+
+                const name = elements.inputs.detectiveName.value.trim();
+                gameState.detectiveName = name || 'Brave Detective';
+
+                navigateTo('story');
+            });
+            elements.buttons.continueGame.addEventListener('click', () => {
+                // Load the saved game data and navigate to the saved screen
+                const saved = localStorage.getItem('gardenHeistProgress');
+                if (saved) {
+                    try {
+                        const savedState = JSON.parse(saved);
+                        Object.assign(gameState, savedState);
+                        navigateTo(gameState.currentScreen || 'welcome');
+                    } catch (e) {
+                        // If save is corrupted, start a new game instead
+                        navigateTo('story');
+                    }
+                }
+            });
+
+            // --- NEW "New Game" LOGIC ---
+
+            // When the main "New Game" button is clicked, just show our custom modal
+            elements.buttons.newGame.addEventListener('click', () => {
+                elements.confirmModal.style.display = 'flex';
+            });
+
+            // When the "Cancel" button inside the modal is clicked, hide it
+            elements.buttons.cancelNewGame.addEventListener('click', () => {
+                elements.confirmModal.style.display = 'none';
+            });
+
+            // When the "Yes, Start New Game" button is clicked, run the new game logic
+            elements.buttons.confirmNewGame.addEventListener('click', () => {
+                // Clear the correct saved game data
+                localStorage.removeItem('menstrieGiantProgress');
+                
+                // Reset game state
+                Object.assign(gameState, {
+                    currentClueIndex: 0,
+                    correctAnswers: 0,
+                    incorrectGuesses: 0,
+                    finalScore: 0,
+                    finalRank: '',
+                    playerSelection: null,
+                    eliminatedObjects: [],
+                    eliminatedSuspects: []
+                });
+
+                // Hide the modal and start the story
+                elements.confirmModal.style.display = 'none';
+                navigateTo('story');
+            });
+            
+
+            elements.buttons.storyContinue.addEventListener('click', () => navigateTo('introStory'));
+            elements.buttons.introStoryNext.addEventListener('click', () => navigateTo('cluePopup'));
+            elements.buttons.directionsNext.addEventListener('click', () => navigateTo('clueStory'));
+            elements.buttons.clueStorySolve.addEventListener('click', loadClueScreen);
+
+            elements.buttons.showSuspects.addEventListener('click', () => showGrid('suspects'));
+            elements.buttons.showObjects.addEventListener('click', () => showGrid('objects'));
+
+            elements.buttons.closeGrid.addEventListener('click', closeGrid);
+            elements.buttons.confirmSelection.addEventListener('click', () => {
+    confirmSelection();
+    saveGameState();
+});
+
+            elements.buttons.feedbackContinue.addEventListener('click', () => {
+                updateProgressScreen();
+            });
+
+            elements.buttons.progressContinue.addEventListener('click', () => {
+                if (gameState.currentClueIndex >= gameData.clues.length) {
+                    showGrandReveal();
+                } else {
+                    navigateTo('cluePopup');
+                }
+            });
+
+            elements.buttons.revealContinue.addEventListener('click', () => {
+                showDetectiveAward();
+            });
+
+            elements.buttons.playAgain.addEventListener('click', () => {
+                navigateTo('welcome');
+            });
+
+            elements.buttons.recap.addEventListener('click', () => {
+                const clue = gameData.clues[gameState.currentClueIndex];
+                if (!clue) return;
+
+                const recapContent = elements.recapModal.content;
+                recapContent.innerHTML = `
+                    <h3 class="screen-subheader header-directions">Directions</h3>
+                    <div id="recap-directions-content"></div>
+                    <h3 class="screen-subheader header-story">Story</h3>
+                    <div id="recap-story-content"></div>
+                `;
+
+                renderNarrative(document.getElementById('recap-directions-content'), clue.directions);
+                renderNarrative(document.getElementById('recap-story-content'), clue.clueStory);
+
+                elements.recapModal.container.style.display = 'flex';
+            });
+
+            elements.buttons.recapClose.addEventListener('click', () => {
+                elements.recapModal.container.style.display = 'none';
+            });
+
+            elements.buttons.showCypher.addEventListener('click', () => {
+                const clue = gameData.clues[gameState.currentClueIndex];
+                if (clue && clue.cypherImage) {
+                    elements.cypherView.img.src = clue.cypherImage;
+                    elements.taskScreenViews.main.style.display = 'none';
+                    elements.taskScreenViews.cypher.style.display = 'block';
+                }
+            });
+
+            elements.buttons.cypherClose.addEventListener('click', () => {
+                elements.taskScreenViews.cypher.style.display = 'none';
+                elements.taskScreenViews.main.style.display = 'block';
+            });
+
+            elements.buttons.notebook.addEventListener('click', () => {
+                const populateNotebookGrid = (gridElement, items, eliminatedItems) => {
+                    gridElement.innerHTML = '';
+                    items.forEach(item => {
+                        const clone = elements.templates.gridItem.content.cloneNode(true);
+                        const div = clone.querySelector('.grid-item');
+                        const img = clone.querySelector('img');
+                        const p = clone.querySelector('p');
+                        div.style.cursor = 'default';
+                        div.style.transform = 'none';
+
+                        img.src = item.image;         // Use .image
+                        img.alt = item.text;          // Use .text
+                        p.textContent = item.text;    // Use .text
+
+                        if (eliminatedItems.includes(item.text)) { // Use .text
+                            div.classList.add('eliminated');
+}
+
+                        gridElement.appendChild(clone);
+                    });
+                };
+                // --- START of new code ---
+
+                // Create a shuffled copy of the suspects list
+                const shuffledSuspects = [...gameData.suspects];
+                for (let i = shuffledSuspects.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffledSuspects[i], shuffledSuspects[j]] = [shuffledSuspects[j], shuffledSuspects[i]];
+                }
+
+                // Create a shuffled copy of the objects list
+                const shuffledObjects = [...gameData.objects];
+                for (let i = shuffledObjects.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffledObjects[i], shuffledObjects[j]] = [shuffledObjects[j], shuffledObjects[i]];
+                }
+
+                // Use the new shuffled lists to build the notebook grids
+                populateNotebookGrid(elements.notebookView.suspectsGrid, shuffledSuspects, gameState.eliminatedSuspects);
+                populateNotebookGrid(elements.notebookView.objectsGrid, shuffledObjects, gameState.eliminatedObjects);
+
+                // --- END of new code ---
+
+                elements.taskScreenViews.main.style.display = 'none';
+                elements.taskScreenViews.notebook.style.display = 'block';
+            });
+
+            elements.buttons.notebookClose.addEventListener('click', () => {
+                elements.taskScreenViews.notebook.style.display = 'none';
+                elements.taskScreenViews.main.style.display = 'block';
+            });
+
+            elements.buttons.viewCertificate.addEventListener('click', showCertificate);
+            elements.buttons.certificateBack.addEventListener('click', () => navigateTo('detectiveAward'));
+            elements.buttons.printCertificate.addEventListener('click', () => {
+                window.print();
+            });
+
+            // --- INITIALIZATION ---
+            function preloadAssets(callback) {
+                const imageSrcs = new Set();
+
+                // Collect all image sources automatically
+                gameData.characters.forEach(c => imageSrcs.add(c.img));
+                gameData.suspects.forEach(s => imageSrcs.add(s.img));
+                gameData.objects.forEach(o => imageSrcs.add(o.img));
+                gameData.awardTiers.forEach(t => imageSrcs.add(t.img));
+                gameData.clues.forEach(clue => {
+                    if (clue.directionsImages) {
+                        clue.directionsImages.forEach(img => imageSrcs.add(img));
+                    }
+                    if (clue.cypherImage) {
+                        imageSrcs.add(clue.cypherImage);
+                    }
+                });
+
+                // Add any other standalone images here
+                const otherImages = [
+                    
+                ];
+                otherImages.forEach(img => imageSrcs.add(img));
+
+                const totalAssets = imageSrcs.size;
+                let loadedAssets = 0;
+
+                if (totalAssets === 0) {
+                    callback();
+                    return;
+                }
+
+                const updateProgressBar = () => {
+                    loadedAssets++;
+                    const percentage = Math.round((loadedAssets / totalAssets) * 100);
+                    elements.loading.progressBar.style.width = `${percentage}%`;
+                    elements.loading.progressBar.textContent = `${percentage}%`;
+                    if (loadedAssets === totalAssets) {
+                        // A small delay to allow the 100% to be visible
+                        setTimeout(callback, 300);
+                    }
+                };
+
+                // Create image elements to trigger download
+                imageSrcs.forEach(src => {
+                    if (!src) {
+                        updateProgressBar(); // Count non-existent images as "loaded"
+                        return;
+                    }
+                    const img = new Image();
+                    img.onload = updateProgressBar;
+                    img.onerror = updateProgressBar; // Also count errors as "loaded" to not halt the game
+                    img.src = src;
+                });
+            }
+
+            
+
+            init();
+        });
+    </script>
+    <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      // Register the service worker from the root directory
+      navigator.serviceWorker.register('pwabuilder-sw.js').then(function(registration) {
+        // Registration was successful
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      }, function(err) {
+        // registration failed :(
+        console.log('ServiceWorker registration failed: ', err);
+      });
+    });
+  }
+</script>
+
+  
+</body>
+</html>
